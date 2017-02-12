@@ -132,7 +132,6 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
     // dashed line parameters
     //private static int minNumDashes = 3;
     //private static double maxDashLength = 10;
-
     private JPanel editToolBarPanel = new JPanel();
     private JScrollPane editToolBarScroll = null;
     private JPanel editToolBarContainer = null;
@@ -280,7 +279,6 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
     // note: although these have been moved to the LayoutTurnout class I'm leaving a copy of them here so
     // that any external use of these won't break. At some point in the future these should be @Deprecated.
     // All JMRI sources have been updated to use the ones in the LayoutTurnout class.
-
     // defined constants - turnout types
     public static final int RH_TURNOUT = LayoutTurnout.RH_TURNOUT;
     public static final int LH_TURNOUT = LayoutTurnout.LH_TURNOUT;
@@ -517,7 +515,6 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
 
         //log.debug("toolBarIsVertical: " + toolBarIsVertical);
         //log.info("getWindowFrameRef(): " + getWindowFrameRef());
-
         // initialize frame
         Container contentPane = getContentPane();
         contentPane.setLayout(new BoxLayout(contentPane, toolBarIsVertical ? BoxLayout.LINE_AXIS : BoxLayout.PAGE_AXIS));
@@ -886,7 +883,6 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
             }
         });
 
-
         blockPanel.add(blockSensorLabel);
         blockPanel.add(blockSensorComboBox);
         blockSensorComboBox.setEditable(true);
@@ -904,7 +900,7 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
 
             // this would be top9Panel
             trackSegmentPropertiesPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-                trackSegmentPropertiesPanel.getPreferredSize().height));
+                    trackSegmentPropertiesPanel.getPreferredSize().height));
             editToolBarPanel.add(trackSegmentPropertiesPanel);
 
             JPanel top10Panel = new JPanel();
@@ -2126,7 +2122,6 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
 //            editToolBarContainer.getInputMap().put(KeyStroke.getKeyStroke("PLUS"), "pressedZoomIn");
 //            editToolBarContainer.getActionMap().put("pressedZoomIn", pressedZoomIn);
 //        }
-
         JMenuItem zoomOutItem = new JMenuItem(rb.getString("ZoomOut"));
         zoomOutItem.setMnemonic(stringsToVTCodes.get(rb.getString("zoomOutMnemonic")));
         zoomOutItem.setAccelerator(KeyStroke.getKeyStroke(stringsToVTCodes.get(
@@ -2235,14 +2230,13 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
         noZoomItem.setSelected(true);
 
         // get the window specific saved zoom user preference
-        // NOTE: this is NOT working… (zoomProp is always null)
-        UserPreferencesManager prefsMgr = InstanceManager.getDefault(UserPreferencesManager.class);
-        if (prefsMgr != null) {
+        InstanceManager.getOptionalDefault(UserPreferencesManager.class).ifPresent((prefsMgr) -> {
             Object zoomProp = prefsMgr.getProperty(getWindowFrameRef(), "zoom");
+            log.debug("{} zoom is {}", getWindowFrameRef(), zoomProp);
             if (zoomProp != null) {
-                setZoom(((Double) zoomProp).doubleValue());
+                setZoom(((Double) zoomProp));
             }
-        }
+        });
     }
 
     private void selectZoomMenuItem(double zoomFactor) {
@@ -2269,10 +2263,9 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
             selectZoomMenuItem(newZoom);
 
             // save the window specific saved zoom user preference
-            UserPreferencesManager prefsMgr = InstanceManager.getDefault(UserPreferencesManager.class);
-            if (prefsMgr != null) {
-                prefsMgr.setProperty(getWindowFrameRef(), "zoom", Double.valueOf(zoomFactor));
-            }
+            InstanceManager.getOptionalDefault(UserPreferencesManager.class).ifPresent((prefsMgr) -> {
+                prefsMgr.setProperty(getWindowFrameRef(), "zoom", zoomFactor);
+            });
         }
         return getPaintScale();
     }
@@ -3167,7 +3160,7 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
                 }
             }
             // loop over all defined slips
-            for (LayoutSlip sl: slipList) {
+            for (LayoutSlip sl : slipList) {
                 Point2D center = sl.getCoordsCenter();
                 if (selectRect.contains(center)) {
                     sl.setCoordsCenter(new Point2D.Double(center.getX() + xTranslation,
@@ -4517,8 +4510,8 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
                 // controlling layout, in edit mode
                 LayoutTurnout t = (LayoutTurnout) selectedObject;
                 t.toggleTurnout();
-            } else if ((selectedObject != null) && ((selectedPointType == LayoutTrack.SLIP_CENTER) ||
-                    (selectedPointType == LayoutTrack.SLIP_LEFT) || (selectedPointType == LayoutTrack.SLIP_RIGHT))
+            } else if ((selectedObject != null) && ((selectedPointType == LayoutTrack.SLIP_CENTER)
+                    || (selectedPointType == LayoutTrack.SLIP_LEFT) || (selectedPointType == LayoutTrack.SLIP_RIGHT))
                     && allControlling() && (!event.isMetaDown()) && (!event.isAltDown()) && (!event.isPopupTrigger())
                     && (!event.isShiftDown()) && (!event.isControlDown())) {
                 // controlling layout, in edit mode
@@ -4564,8 +4557,8 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
                 t.toggleTurnout();
             }
         } // check if controlling turnouts out of edit mode
-        else if ((selectedObject != null) && ((selectedPointType == LayoutTrack.SLIP_CENTER) ||
-                            (selectedPointType == LayoutTrack.SLIP_LEFT) || (selectedPointType == LayoutTrack.SLIP_RIGHT))
+        else if ((selectedObject != null) && ((selectedPointType == LayoutTrack.SLIP_CENTER)
+                || (selectedPointType == LayoutTrack.SLIP_LEFT) || (selectedPointType == LayoutTrack.SLIP_RIGHT))
                 && allControlling() && (!event.isMetaDown()) && (!event.isAltDown()) && (!event.isPopupTrigger())
                 && (!event.isShiftDown()) && (!delayedPopupTrigger)) {
             // controlling layout, not in edit mode
@@ -8704,25 +8697,24 @@ public class LayoutEditor extends jmri.jmrit.display.panelEditor.PanelEditor imp
 
     // these are convenience methods to return rectangles
     // to do point-in-rect (hit) testing
-
     // compute the control point rect at inPoint
     public Rectangle2D controlPointRectAt(Point2D inPoint) {
         return new Rectangle2D.Double(
-            inPoint.getX() - LayoutTrack.controlPointSize,
-            inPoint.getY() - LayoutTrack.controlPointSize,
-            LayoutTrack.controlPointSize2, LayoutTrack.controlPointSize2);
+                inPoint.getX() - LayoutTrack.controlPointSize,
+                inPoint.getY() - LayoutTrack.controlPointSize,
+                LayoutTrack.controlPointSize2, LayoutTrack.controlPointSize2);
     }
 
     // compute the turnout circle rect at inPoint
     public Rectangle2D turnoutCircleRectAt(Point2D inPoint) {
         return new Rectangle2D.Double(inPoint.getX() - circleRadius,
-            inPoint.getY() - circleRadius, circleDiameter, circleDiameter);
+                inPoint.getY() - circleRadius, circleDiameter, circleDiameter);
     }
 
     // compute the turnout circle at inPoint (used for drawing)
     public Ellipse2D turnoutCircleAt(Point2D inPoint) {
         return new Ellipse2D.Double(inPoint.getX() - circleRadius,
-            inPoint.getY() - circleRadius, circleDiameter, circleDiameter);
+                inPoint.getY() - circleRadius, circleDiameter, circleDiameter);
     }
 
     /**
