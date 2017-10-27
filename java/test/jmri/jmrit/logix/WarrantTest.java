@@ -33,7 +33,7 @@ public class WarrantTest {
     TurnoutManager _turnoutMgr;
     
     /**
-     * It's considered bad form to write tests that depend on the order of execution.
+     * tests depend on the order of execution.
      * So this will be one large test.
      */
 
@@ -164,7 +164,7 @@ public class WarrantTest {
         
         warrant.setThrottleCommands(new ArrayList<ThrottleSetting>());
         warrant.addThrottleCommand(new ThrottleSetting(0, "Speed", "0.0", "North"));
-        warrant.addThrottleCommand(new ThrottleSetting(100, "Speed", "0.4", "North"));
+        warrant.addThrottleCommand(new ThrottleSetting(10, "Speed", "0.4", "North"));
         warrant.addThrottleCommand(new ThrottleSetting(100, "NoOp", "Enter Block", "West"));
         warrant.addThrottleCommand(new ThrottleSetting(100, "Speed", "0.5", "West"));
         warrant.addThrottleCommand(new ThrottleSetting(100, "NoOp", "Enter Block", "South"));
@@ -175,13 +175,16 @@ public class WarrantTest {
         
 //        DccLocoAddress dccAddress = new DccLocoAddress(999, true);
 //        Assert.assertNotNull("dccAddress", dccAddress);
-        warrant.setDccAddress("999(L)");
+        warrant.getSpeedUtil().setDccAddress("999(L)");
         msg = warrant.setRoute(0, orders);
         Assert.assertNull("setRoute - "+msg, msg);
         msg =  warrant.checkStartBlock(Warrant.MODE_RUN);
         Assert.assertNull("checkStartBlock - "+msg, msg);
         msg = warrant.checkRoute();
         Assert.assertNull("checkRoute - "+msg, msg);
+        SpeedUtil su = warrant.getSpeedUtil();
+        Assert.assertNotNull("SpeedUtil null", su);
+        su.setOrders(orders);
         
         warrant.setTrainName("TestTrain");
         PropertyChangeListener listener = new WarrantListener(warrant);
@@ -191,31 +194,31 @@ public class WarrantTest {
         msg = warrant.setRunMode(Warrant.MODE_RUN, null, null, null, false);
         Assert.assertNull("setRunMode - "+msg, msg);
 
-        // run the train
-        jmri.util.JUnitUtil.releaseThread(this); // nothing specific to wait for...
+        jmri.util.JUnitUtil.waitFor(() -> {
+            String m =  warrant.getRunningMessage();
+            return m.endsWith("Cmd #2.");
+        }, "Train starts to move after 2nd command");
+        jmri.util.JUnitUtil.releaseThread(this, 100); // What should we specifically waitFor?
 
         jmri.util.ThreadingUtil.runOnLayout( ()->{
             try {
                 sWest.setState(Sensor.ACTIVE);
             } catch (jmri.JmriException e) { Assert.fail("Unexpected Exception: "+e); }
         });
-        jmri.util.JUnitUtil.releaseThread(this);
+        jmri.util.JUnitUtil.releaseThread(this, 100); // What should we specifically waitFor?
 
         jmri.util.ThreadingUtil.runOnLayout( ()->{
             try {
                 sSouth.setState(Sensor.ACTIVE);
             } catch (jmri.JmriException e) { Assert.fail("Unexpected Exception: "+e); }
         });
-        jmri.util.JUnitUtil.releaseThread(this);
-
-        // confirm one message logged
-        jmri.util.JUnitAppender.assertWarnMessage("RosterSpeedProfile not found. Using default ThrottleFactor 0.75");
+        jmri.util.JUnitUtil.releaseThread(this, 100);
 
         // wait for done
-        jmri.util.JUnitUtil.waitFor(()->{return warrant.getThrottle()==null;}, "engineer blocked");
-
-        msg = warrant.getRunningMessage();
-        Assert.assertEquals("getRunningMessage", "Idle", msg);
+        jmri.util.JUnitUtil.waitFor(()->{return warrant.getRunningMessage().equals("Idle");}, "warrant not done");
+        
+        // confirm one message logged
+        // jmri.util.JUnitAppender.assertWarnMessage("Block West does not have a length for path SouthToNorth");
     }
     
     
@@ -253,13 +256,13 @@ public class WarrantTest {
         Locale.setDefault(Locale.ENGLISH);
         JUnitUtil.resetInstanceManager();
         JUnitUtil.initDebugThrottleManager();
+        JUnitUtil.initShutDownManager();
 //        JUnitUtil.initWarrantManager();
     }
 
     @After
     public void tearDown() {
-        jmri.util.JUnitUtil.resetInstanceManager();
-        apps.tests.Log4JFixture.tearDown();
+        JUnitUtil.tearDown();
     }
 
 }

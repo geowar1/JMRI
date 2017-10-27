@@ -1,10 +1,13 @@
 package jmri.jmrix;
 
-import gnu.io.CommPortIdentifier;
 import java.util.Enumeration;
 import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import purejavacomm.CommPortIdentifier;
+import purejavacomm.NoSuchPortException;
+import purejavacomm.PortInUseException;
+import purejavacomm.SerialPort;
 
 /**
  * Provide an abstract base for *PortController classes.
@@ -32,7 +35,7 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
      * @return Localized message, in case separate presentation to user is desired
      */
     @Override
-    public String handlePortBusy(gnu.io.PortInUseException p, String portName, Logger log) {
+    public String handlePortBusy(PortInUseException p, String portName, Logger log) {
         log.error(portName + " port is in use: " + p.getMessage());
         /*JOptionPane.showMessageDialog(null, "Port is in use",
          "Error", JOptionPane.ERROR_MESSAGE);*/
@@ -43,7 +46,7 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
     /**
      * Standard error handling for port-not-found case
      */
-    public String handlePortNotFound(gnu.io.NoSuchPortException p, String portName, Logger log) {
+    public String handlePortNotFound(NoSuchPortException p, String portName, Logger log) {
         log.error("Serial port " + portName + " not found");
         /*JOptionPane.showMessageDialog(null, "Serial port "+portName+" not found",
          "Error", JOptionPane.ERROR_MESSAGE);*/
@@ -51,11 +54,17 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
         return Bundle.getMessage("SerialPortNotFound", portName);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void connect() throws Exception {
+    public void connect() throws java.io.IOException {
         openPort(mPort, "JMRI app");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setPort(String port) {
         log.debug("Setting port to "+port);
@@ -63,11 +72,15 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
     }
     protected String mPort = null;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getCurrentPortName() {
         if (mPort == null) {
             if (getPortNames() == null) {
-                //This shouldn't happen but in the tests for some reason this happens
+                // This shouldn't happen in normal operation
+                // but in the tests this can happen if the receive thread has been interrupted
                 log.error("Port names returned as null");
                 return null;
             }
@@ -82,7 +95,36 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
     }
 
     /**
-     * Set the baud rate. This records it for later.
+     * Set the control leads and flow control.
+     * This handles any necessary ordering.
+     * @param serialPort Port to be updated
+     * @param flow flow control mode from (@link purejavacomm.SerialPort} 
+     * @param rts Set RTS active if true
+     * @param dtr set DTR active if true
+     */
+    protected void configureLeadsAndFlowControl(SerialPort serialPort, int flow, boolean rts, boolean dtr) {
+        serialPort.setRTS(rts);
+        serialPort.setDTR(dtr);
+        try {
+            if (flow!=purejavacomm.SerialPort.FLOWCONTROL_NONE) serialPort.setFlowControlMode(flow);
+        } catch (purejavacomm.UnsupportedCommOperationException e) {
+            log.warn("Could not set flow control, ignoring");
+        }
+        if (flow!=purejavacomm.SerialPort.FLOWCONTROL_RTSCTS_OUT) serialPort.setRTS(rts);  // not connected in some serial ports and adapters
+        serialPort.setDTR(dtr); 
+    }
+
+    /** 
+     * Sets the flow control, while also setting RTS and DTR to active.
+     * @param serialPort Port to be updated
+     * @param flow flow control mode from (@link purejavacomm.SerialPort} 
+     */
+    protected void configureLeadsAndFlowControl(SerialPort serialPort, int flow) {
+        configureLeadsAndFlowControl(serialPort, flow, true, true);
+    }
+    
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void configureBaudRate(String rate) {
@@ -90,6 +132,9 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
     }
     protected String mBaudRate = null;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getCurrentBaudRate() {
         if (mBaudRate == null) {
@@ -151,6 +196,9 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
 
     Vector<String> portNameVector = null;
 
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("unchecked")
     @Override
     public Vector<String> getPortNames() {
@@ -170,6 +218,9 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
         return portNameVector;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void dispose() {
         super.dispose();
@@ -187,7 +238,7 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
         opened = false;
         try {
             closeConnection();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
         }
         reconnect();
     }
@@ -195,7 +246,7 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
     /*Each serial port adapter should handle this and it should be abstract.
      However this is in place until all the other code has been refactored */
 
-    protected void closeConnection() throws Exception {
+    protected void closeConnection() {
         System.out.println("crap Called");
     }
 
@@ -212,7 +263,7 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
         if (opened && !allowConnectionRecovery) {
             return;
         }
-        reconnectwait thread = new reconnectwait();
+        ReconnectWait thread = new ReconnectWait();
         thread.start();
         try {
             thread.join();
@@ -227,7 +278,7 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
         }
     }
 
-    class reconnectwait extends Thread {
+    class ReconnectWait extends Thread {
 
         public final static int THREADPASS = 0;
         public final static int THREADFAIL = 1;
@@ -237,7 +288,7 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
             return _status;
         }
 
-        public reconnectwait() {
+        public ReconnectWait() {
             _status = THREADFAIL;
         }
 
@@ -264,7 +315,7 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
                             }
                         }
                     }
-                } catch (Exception e) {
+                } catch (RuntimeException e) {
                 }
                 reply = !opened;
                 if (count >= retryAttempts) {
@@ -288,6 +339,6 @@ abstract public class AbstractSerialPortController extends AbstractPortControlle
         }
     }
 
-    private final static Logger log = LoggerFactory.getLogger(AbstractSerialPortController.class.getName());
+    private final static Logger log = LoggerFactory.getLogger(AbstractSerialPortController.class);
 
 }

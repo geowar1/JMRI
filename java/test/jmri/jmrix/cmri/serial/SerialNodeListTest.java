@@ -1,7 +1,7 @@
 package jmri.jmrix.cmri.serial;
 
+import jmri.util.JUnitUtil;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,27 +14,24 @@ public class SerialNodeListTest {
 
     @Test
     public void testCtor() {
-        SerialNodeList s = new SerialNodeList();       
+        new SerialNodeList();       
     }
 
     private jmri.jmrix.cmri.CMRISystemConnectionMemo memo = null;
     private SerialTrafficControlScaffold stcs = null;
-    private SerialNode n0 = null;
-    private SerialNode n1 = null;
     private SerialNode n2 = null;
     
     // The minimal setup for log4J
     @Before
     public void setUp() {
-        apps.tests.Log4JFixture.setUp();
-        jmri.util.JUnitUtil.resetInstanceManager();
+        JUnitUtil.setUp();
         // replace the SerialTrafficController
         stcs = new SerialTrafficControlScaffold();
         memo = new jmri.jmrix.cmri.CMRISystemConnectionMemo();
         memo.setTrafficController(stcs);
 
-        n0 = new SerialNode(stcs);
-        n1 = new SerialNode(1, SerialNode.SMINI,stcs);
+        new SerialNode(stcs);
+        new SerialNode(1, SerialNode.SMINI,stcs);
         n2 = new SerialNode(2, SerialNode.USIC_SUSIC,stcs);
         n2.setNumBitsPerCard(24);
         n2.setCardTypeByAddress(0, SerialNode.INPUT_CARD);
@@ -47,8 +44,7 @@ public class SerialNodeListTest {
 
     @After
     public void tearDown() {
-        jmri.util.JUnitUtil.resetInstanceManager();
-        apps.tests.Log4JFixture.tearDown();
+        JUnitUtil.tearDown();
         stcs = null;
         memo = null;
     }

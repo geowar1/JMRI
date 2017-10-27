@@ -15,14 +15,14 @@ public class SerialPortAdapterTest extends jmri.jmrix.AbstractSerialPortControll
     @Override
     @Before
     public void setUp(){
-       apps.tests.Log4JFixture.setUp();
-       JUnitUtil.resetInstanceManager();
+       JUnitUtil.setUp();
        SerialTrafficController tc = new SerialTrafficController(){
           @Override
           public void sendSerialMessage(SerialMessage m,SerialListener reply) {
           }
        };
        jmri.jmrix.cmri.CMRISystemConnectionMemo memo = new jmri.jmrix.cmri.CMRISystemConnectionMemo();
+       memo.setTrafficController(tc);
        apc = new SerialPortAdapter(memo){
             @Override
             public boolean status(){
@@ -63,8 +63,7 @@ public class SerialPortAdapterTest extends jmri.jmrix.AbstractSerialPortControll
     @Override
     @After
     public void tearDown(){
-       JUnitUtil.resetInstanceManager();
-       apps.tests.Log4JFixture.tearDown();
+       JUnitUtil.tearDown();
     }
 
 }

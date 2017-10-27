@@ -1,10 +1,5 @@
 package jmri.jmrix.tmcc.serialdriver;
 
-import gnu.io.CommPortIdentifier;
-import gnu.io.PortInUseException;
-import gnu.io.SerialPort;
-import gnu.io.SerialPortEvent;
-import gnu.io.UnsupportedCommOperationException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -16,6 +11,12 @@ import jmri.jmrix.tmcc.SerialTrafficController;
 import jmri.jmrix.tmcc.TMCCSystemConnectionMemo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import purejavacomm.CommPortIdentifier;
+import purejavacomm.NoSuchPortException;
+import purejavacomm.PortInUseException;
+import purejavacomm.SerialPort;
+import purejavacomm.SerialPortEvent;
+import purejavacomm.UnsupportedCommOperationException;
 
 /**
  * Provide access to TMCC via a serial comm port. Normally controlled by the
@@ -45,7 +46,7 @@ public class SerialDriverAdapter extends SerialPortController implements jmri.jm
             // try to set it for serial
             try {
                 setSerialPort();
-            } catch (gnu.io.UnsupportedCommOperationException e) {
+            } catch (UnsupportedCommOperationException e) {
                 log.error("Cannot set serial parameters on port " + portName + ": " + e.getMessage());
                 return "Cannot set serial parameters on port " + portName + ": " + e.getMessage();
             }
@@ -150,7 +151,7 @@ public class SerialDriverAdapter extends SerialPortController implements jmri.jm
 
             opened = true;
 
-        } catch (gnu.io.NoSuchPortException p) {
+        } catch (NoSuchPortException p) {
             return handlePortNotFound(p, portName, log);
         } catch (IOException | TooManyListenersException ex) {
             log.error("Unexpected exception while opening port {} trace follows: ", portName, ex);
@@ -213,10 +214,10 @@ public class SerialDriverAdapter extends SerialPortController implements jmri.jm
     /**
      * Local method to do specific port configuration.
      *
-     * @throws gnu.io.UnsupportedCommOperationException if unable to configure
+     * @throws UnsupportedCommOperationException if unable to configure
      *                                                  port
      */
-    protected void setSerialPort() throws gnu.io.UnsupportedCommOperationException {
+    protected void setSerialPort() throws UnsupportedCommOperationException {
         // find the baud rate value, configure comm options
         int baud = 9600;  // default, but also defaulted in the initial value of selectedSpeed
         for (int i = 0; i < validSpeeds.length; i++) {
@@ -227,13 +228,9 @@ public class SerialDriverAdapter extends SerialPortController implements jmri.jm
         activeSerialPort.setSerialPortParams(baud, SerialPort.DATABITS_8,
                 SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
 
-        // set RTS high, DTR high - done early, so flow control can be configured after
-        activeSerialPort.setRTS(true);		// not connected in some serial ports and adapters
-        activeSerialPort.setDTR(true);		// pin 1 in DIN8; on main connector, this is DTR
-
         // find and configure flow control
         int flow = SerialPort.FLOWCONTROL_NONE; // default
-        activeSerialPort.setFlowControlMode(flow);
+        configureLeadsAndFlowControl(activeSerialPort, flow);
     }
 
     @Override
@@ -300,6 +297,6 @@ public class SerialDriverAdapter extends SerialPortController implements jmri.jm
     @Deprecated
     static SerialDriverAdapter mInstance = null;
 
-    private final static Logger log = LoggerFactory.getLogger(SerialDriverAdapter.class.getName());
+    private final static Logger log = LoggerFactory.getLogger(SerialDriverAdapter.class);
 
 }

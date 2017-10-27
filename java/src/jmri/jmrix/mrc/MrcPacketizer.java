@@ -113,7 +113,7 @@ public class MrcPacketizer extends MrcTrafficController {
                     log.debug("==");
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.warn("passing to xmit: unexpected exception: {0}", e); //IN18N
         }
     }
@@ -196,7 +196,7 @@ public class MrcPacketizer extends MrcTrafficController {
     /**
      * Read a single byte, protecting against various timeouts, etc.
      * <P>
-     * When a gnu.io port is set to have a receive timeout (via the
+     * When a port is set to have a receive timeout (via the
      * enableReceiveTimeout() method), some will return zero bytes or an
      * EOFException at the end of the timeout. In that case, the read should be
      * repeated to get the next real character.
@@ -483,9 +483,9 @@ public class MrcPacketizer extends MrcTrafficController {
                     log.debug("IOException, should only happen with HexFile", e);
                     disconnectPort(controller);
                     return;
-                } // normally, we don't catch the unnamed Exception, but in this
+                } // normally, we don't catch RuntimeException, but in this
                 // permanently running loop it seems wise.
-                catch (Exception e) {
+                catch (RuntimeException e) {
                     log.warn("Unknown Exception: {0}", e);  //IN18N
                     e.printStackTrace();
                 }
@@ -731,5 +731,5 @@ public class MrcPacketizer extends MrcTrafficController {
 
     }
 
-    private final static Logger log = LoggerFactory.getLogger(MrcPacketizer.class.getName());
+    private final static Logger log = LoggerFactory.getLogger(MrcPacketizer.class);
 }
