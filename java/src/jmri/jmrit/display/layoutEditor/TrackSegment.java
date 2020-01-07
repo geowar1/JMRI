@@ -2245,7 +2245,7 @@ public class TrackSegment extends LayoutTrack {
      * {@inheritDoc}
      */
     @Override
-    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock) {
+    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
 //        if (getName().equals("T5")) {
 //            log.debug("STOP");
 //        }
@@ -2257,6 +2257,9 @@ public class TrackSegment extends LayoutTrack {
         if (isMain == mainline) {
             if (isBlock) {
                 setColorForTrackBlock(g2, getLayoutBlock());
+                if (isMark) {
+                    g2.setColor(ColorUtil.contrast(g2.getColor()));
+                }
             }
             if (isArc()) {
                 calculateTrackSegmentAngle();

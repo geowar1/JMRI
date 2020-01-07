@@ -3297,12 +3297,14 @@ public class LayoutTurnout extends LayoutTrack {
      * {@inheritDoc}
      */
     @Override
-    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock) {
+    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
         if (isBlock && getLayoutBlock() == null) {
             // Skip the block layer if there is no block assigned.
             return;
         }
-
+        if (isMark) {
+            return; //don't draw marks; yet
+        }
         Point2D pA = getCoordsA();
         Point2D pB = getCoordsB();
         Point2D pC = getCoordsC();

@@ -1110,7 +1110,7 @@ public class LayoutTurntable extends LayoutTrack {
      * {@inheritDoc}
      */
     @Override
-    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock) {
+    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
         float trackWidth = 2.F;
         float halfTrackWidth = trackWidth / 2.f;
         double radius = getRadius(), diameter = 2.f * radius;

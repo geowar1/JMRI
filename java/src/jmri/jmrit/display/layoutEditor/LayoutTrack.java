@@ -58,10 +58,8 @@ public abstract class LayoutTrack {
     protected String ident = "";
     protected Point2D center = new Point2D.Double(50.0, 50.0);
 
-    // dashed line parameters (unused)
-    //protected static int minNumDashes = 3;
-    //protected static double maxDashLength = 10;
     protected boolean hidden = false;
+    protected boolean marked = true;    //TODO:Fix this for production; should default to false
 
     /**
      * constructor method
@@ -129,6 +127,7 @@ public abstract class LayoutTrack {
 
     /**
      * convenience method for accessing...
+     *
      * @return the layout editor's toolbar panel
      */
     @Nonnull
@@ -146,14 +145,14 @@ public abstract class LayoutTrack {
     //compute the turnout circle at inPoint (used for drawing)
     public Ellipse2D trackControlCircleAt(@Nonnull Point2D inPoint) {
         return new Ellipse2D.Double(inPoint.getX() - layoutEditor.circleRadius,
-                inPoint.getY() - layoutEditor.circleRadius, 
+                inPoint.getY() - layoutEditor.circleRadius,
                 layoutEditor.circleDiameter, layoutEditor.circleDiameter);
     }
 
     //compute the turnout circle control rect at inPoint
     public Rectangle2D trackControlCircleRectAt(@Nonnull Point2D inPoint) {
         return new Rectangle2D.Double(inPoint.getX() - layoutEditor.circleRadius,
-                inPoint.getY() - layoutEditor.circleRadius, 
+                inPoint.getY() - layoutEditor.circleRadius,
                 layoutEditor.circleDiameter, layoutEditor.circleDiameter);
     }
 
@@ -196,7 +195,7 @@ public abstract class LayoutTrack {
      * @param isMain  true if drawing mainlines
      * @param isBlock true if drawing block lines
      */
-    protected abstract void draw1(Graphics2D g2, boolean isMain, boolean isBlock);
+    protected abstract void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark);
 
     /**
      * draw two lines (rails)
@@ -259,7 +258,7 @@ public abstract class LayoutTrack {
     }
 
     /**
-     * Get the hidden state of the track element.
+     * Get the hidden state of this track element
      *
      * @return true if hidden; false otherwise
      */
@@ -267,12 +266,36 @@ public abstract class LayoutTrack {
         return hidden;
     }
 
+    /**
+     * set the hidden state of this track element
+     *
+     * @param hide
+     */
     public void setHidden(boolean hide) {
         if (hidden != hide) {
             hidden = hide;
-            if (layoutEditor != null) {
-                layoutEditor.redrawPanel();
-            }
+            layoutEditor.redrawPanel();
+        }
+    }
+
+    /**
+     * Get the marked state of this track element
+     *
+     * @return true if marked; false otherwise
+     */
+    public boolean isMarked() {
+        return marked;
+    }
+
+    /**
+     * set the marked state of this track element
+     *
+     * @param mark
+     */
+    public void setMarked(boolean mark) {
+        if (marked != mark) {
+            marked = mark;
+            layoutEditor.redrawPanel();
         }
     }
 
@@ -300,27 +323,30 @@ public abstract class LayoutTrack {
     /**
      * Check for active block boundaries.
      * <p>
-     * If any connection point of a layout track object has attached objects, such as
-     * signal masts, signal heads or NX sensors, the layout track object cannot be deleted.
+     * If any connection point of a layout track object has attached objects,
+     * such as signal masts, signal heads or NX sensors, the layout track object
+     * cannot be deleted.
+     *
      * @return true if the layout track object can be deleted.
      */
     public abstract boolean canRemove();
 
     /**
      * Display the attached items that prevent removing the layout track item.
+     *
      * @param itemList A list of the attached heads, masts and/or sensors.
-     * @param typeKey The object type such as Turnout, Level Crossing, etc.
+     * @param typeKey  The object type such as Turnout, Level Crossing, etc.
      */
     public void displayRemoveWarningDialog(List<String> itemList, String typeKey) {
         itemList.sort(null);
-        StringBuilder msg = new StringBuilder(Bundle.getMessage("MakeLabel",  // NOI18N
+        StringBuilder msg = new StringBuilder(Bundle.getMessage("MakeLabel", // NOI18N
                 Bundle.getMessage("DeleteTrackItem", Bundle.getMessage(typeKey))));  // NOI18N
         for (String item : itemList) {
             msg.append("\n    " + item);  // NOI18N
         }
         javax.swing.JOptionPane.showMessageDialog(layoutEditor,
                 msg.toString(),
-                Bundle.getMessage("WarningTitle"),  // NOI18N
+                Bundle.getMessage("WarningTitle"), // NOI18N
                 javax.swing.JOptionPane.WARNING_MESSAGE);
     }
 
@@ -369,10 +395,10 @@ public abstract class LayoutTrack {
     /**
      * find the hit (location) type for a point
      *
-     * @param hitPoint            the point
-     * @param useRectangles       whether to use (larger) rectangles or
-     *                           (smaller) circles for hit testing
-     * @param requireUnconnected  whether to only return hit types for free
+     * @param hitPoint           the point
+     * @param useRectangles      whether to use (larger) rectangles or (smaller)
+     *                           circles for hit testing
+     * @param requireUnconnected whether to only return hit types for free
      *                           connections
      * @return the location type for the point (or NONE)
      * @since 7.4.3
@@ -624,7 +650,7 @@ public abstract class LayoutTrack {
     /**
      * return true if this connection type is disconnected
      *
-     * @param connectionType  the connection type to test
+     * @param connectionType the connection type to test
      * @return true if the connection for this connection type is free
      */
     public boolean isDisconnected(int connectionType) {

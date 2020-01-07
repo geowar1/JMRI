@@ -366,9 +366,15 @@ class LayoutEditorComponent extends JComponent {
 
         //setup for drawing sideline block lines
         int blockLineWidth = ltdo.getSideBlockLineWidth();
+        int markLineWidth = blockLineWidth + ((blockLineWidth >= 3) ? -2 : +2);
+
         float[] dashArray = new float[]{6.F + blockLineWidth, 4.F + blockLineWidth};
 
         Stroke blockLineStroke;
+        Stroke dashedBlockLineStroke;
+        Stroke markLineStroke;
+        Stroke dashedMarkLineStroke;
+
         int dashPercentageX10 = ltdo.getSideBlockLineDashPercentageX10();
         if (dashPercentageX10 > 0) {
             float[] blockLineDashArray = new float[]{
@@ -378,51 +384,111 @@ class LayoutEditorComponent extends JComponent {
                     blockLineWidth,
                     BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
                     10.F, blockLineDashArray, 0);
-            g2.setStroke(blockLineStroke);
+            dashedBlockLineStroke = blockLineStroke;
+            markLineStroke = new BasicStroke(
+                    markLineWidth,
+                    BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                    10.F, blockLineDashArray, 0);
+            dashedMarkLineStroke = markLineStroke;
         } else {
             blockLineStroke = new BasicStroke(
-                    ltdo.getSideBlockLineWidth(),
+                    blockLineWidth,
                     BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-            g2.setStroke(new BasicStroke(
+            dashedBlockLineStroke = new BasicStroke(
                     blockLineWidth,
                     BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-                    10.F, dashArray, 0));
+                    10.F, dashArray, 0);
+
+            markLineStroke = new BasicStroke(
+                    markLineWidth,
+                    BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+            dashedMarkLineStroke = new BasicStroke(
+                    markLineWidth,
+                    BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                    10.F, dashArray, 0);
         }
 
         //note: color is set in layout track's draw1 when isBlock is true
         boolean main = false, block = true, hidden = false, dashed = true;
-        draw1(g2, main, block, hidden, dashed);
-        g2.setStroke(blockLineStroke);
-        draw1(g2, main, block, hidden, dashed = false);
+        boolean marked = (markLineWidth > blockLineWidth);
+        g2.setStroke(marked ? dashedMarkLineStroke : dashedBlockLineStroke);
+        draw1(g2, main, block, hidden, dashed, marked);
+        marked = !marked;
+        g2.setStroke(marked ? dashedMarkLineStroke : dashedBlockLineStroke);
+        draw1(g2, main, block, hidden, dashed, marked);
+
+        dashed = false;
+        marked = !marked;
+        g2.setStroke(marked ? markLineStroke : blockLineStroke);
+        draw1(g2, main, block, hidden, dashed, marked);
+        marked = !marked;
+        g2.setStroke(marked ? markLineStroke : blockLineStroke);
+        draw1(g2, main, block, hidden, dashed, marked);
 
         //setup for drawing mainline block lines
+        main = true;
         blockLineWidth = ltdo.getMainBlockLineWidth();
+        markLineWidth = blockLineWidth + ((blockLineWidth >= 3) ? -2 : +2);
         dashArray = new float[]{6.F + blockLineWidth, 4.F + blockLineWidth};
 
         dashPercentageX10 = ltdo.getMainBlockLineDashPercentageX10();
         if (dashPercentageX10 > 0) {
             float[] blockLineDashArray = new float[]{
                 dashPercentageX10 + blockLineWidth,
-                10 - dashPercentageX10 + blockLineWidth};
+                10.F - dashPercentageX10 + blockLineWidth};
             blockLineStroke = new BasicStroke(
                     blockLineWidth,
                     BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
                     10.F, blockLineDashArray, 0);
-            g2.setStroke(blockLineStroke);
+            dashedBlockLineStroke = blockLineStroke;
+            markLineStroke = new BasicStroke(
+                    markLineWidth,
+                    BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                    10.F, blockLineDashArray, 0);
+            dashedMarkLineStroke = markLineStroke;
         } else {
             blockLineStroke = new BasicStroke(
-                    ltdo.getMainBlockLineWidth(),
+                    blockLineWidth,
                     BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-            g2.setStroke(new BasicStroke(
+            dashedBlockLineStroke = new BasicStroke(
                     blockLineWidth,
                     BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-                    10.F, dashArray, 0));
+                    10.F, dashArray, 0);
+
+            markLineStroke = new BasicStroke(
+                    markLineWidth,
+                    BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+            dashedMarkLineStroke = new BasicStroke(
+                    markLineWidth,
+                    BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                    10.F, dashArray, 0);
         }
+
         //note: color is set in layout track's draw1 when isBlock is true
-        draw1(g2, main = true, block, hidden, dashed = true);
-        g2.setStroke(blockLineStroke);
+        dashed = true;
+        marked = (markLineWidth > blockLineWidth);
+        g2.setStroke(marked ? dashedMarkLineStroke : dashedBlockLineStroke);
+        draw1(g2, main, block, hidden, dashed, marked);
+        marked = !marked;
+        g2.setStroke(marked ? dashedMarkLineStroke : dashedBlockLineStroke);
+        draw1(g2, main, block, hidden, dashed, marked);
+
         dashed = false;
-        draw1(g2, main, block, hidden, dashed);
+        marked = !marked;
+        g2.setStroke(marked ? markLineStroke : blockLineStroke);
+        draw1(g2, main, block, hidden, dashed, marked);
+        marked = !marked;
+        g2.setStroke(marked ? markLineStroke : blockLineStroke);
+        draw1(g2, main, block, hidden, dashed, marked);
+    }
+
+    // isMarked defaults to false
+    private void draw1(Graphics2D g2,
+            boolean isMain,
+            boolean isBlock,
+            boolean isHidden,
+            boolean isDashed) {
+        draw1(g2, isMain, isBlock, isHidden, isDashed, false);
     }
 
     // isDashed defaults to false
@@ -450,16 +516,17 @@ class LayoutEditorComponent extends JComponent {
             boolean isMain,
             boolean isBlock,
             boolean isHidden,
-            boolean isDashed) {
+            boolean isDashed,
+            boolean isMarked) {
         for (LayoutTrack layoutTrack : layoutEditor.getLayoutTracks()) {
             if (!(layoutTrack instanceof PositionablePoint)) {
                 if (isHidden == layoutTrack.isHidden()) {
                     if ((layoutTrack instanceof TrackSegment)) {
                         if (((TrackSegment) layoutTrack).isDashed() == isDashed) {
-                            layoutTrack.draw1(g2, isMain, isBlock);
+                            layoutTrack.draw1(g2, isMain, isBlock, isMarked);
                         }
                     } else if (!isDashed) {
-                        layoutTrack.draw1(g2, isMain, isBlock);
+                        layoutTrack.draw1(g2, isMain, isBlock, isMarked);
                     }
                 }
             }
@@ -469,7 +536,7 @@ class LayoutEditorComponent extends JComponent {
     // draw positionable points
     private void drawPositionablePoints(Graphics2D g2, boolean isMain) {
         for (PositionablePoint positionablePoint : layoutEditor.getPositionablePoints()) {
-            positionablePoint.draw1(g2, isMain, false);
+            positionablePoint.draw1(g2, isMain, false, false);
         }
     }
 

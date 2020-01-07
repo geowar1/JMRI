@@ -1114,7 +1114,7 @@ public class LayoutSlip extends LayoutTurnout {
     }
 
     @Override
-    protected void draw1(Graphics2D g2, boolean drawMain, boolean isBlock) {
+    protected void draw1(Graphics2D g2, boolean drawMain, boolean isBlock, boolean isMark) {
         Point2D pA = getCoordsA();
         Point2D pB = getCoordsB();
         Point2D pC = getCoordsC();
