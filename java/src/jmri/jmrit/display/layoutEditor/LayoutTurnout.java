@@ -17,6 +17,7 @@ import javax.swing.*;
 import jmri.*;
 import jmri.jmrit.display.layoutEditor.blockRoutingTable.LayoutBlockRouteTableAction;
 import jmri.jmrit.signalling.SignallingGuiTools;
+import jmri.util.ColorUtil;
 import jmri.util.MathUtil;
 import org.slf4j.*;
 
@@ -2883,7 +2884,7 @@ public class LayoutTurnout extends LayoutTrack {
                     popup.add(new AbstractAction(Bundle.getMessage("SetSensors")) {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                        LayoutEditorToolBarPanel letbp = getLayoutEditorToolBarPanel();
+                            LayoutEditorToolBarPanel letbp = getLayoutEditorToolBarPanel();
                             layoutEditor.getLETools().setSensorsAtTurnoutFromMenu(
                                     LayoutTurnout.this,
                                     boundaryBetween,
@@ -3302,9 +3303,7 @@ public class LayoutTurnout extends LayoutTrack {
             // Skip the block layer if there is no block assigned.
             return;
         }
-        if (isMark) {
-            return; //don't draw marks; yet
-        }
+
         Point2D pA = getCoordsA();
         Point2D pB = getCoordsB();
         Point2D pC = getCoordsC();
@@ -3336,6 +3335,13 @@ public class LayoutTurnout extends LayoutTrack {
             colorD = (lb == null) ? color : lb.getBlockColor();
         }
 
+        if (isMark) {
+            colorA = ColorUtil.contrast(colorA);
+            colorB = ColorUtil.contrast(colorB);
+            colorC = ColorUtil.contrast(colorC);
+            colorD = ColorUtil.contrast(colorD);
+        }
+
         // middles
         Point2D pM = getCoordsCenter();
         Point2D pABM = MathUtil.midPoint(pA, pB);
@@ -3356,7 +3362,7 @@ public class LayoutTurnout extends LayoutTrack {
         Point2D pDF = MathUtil.midPoint(pDM, pM);
 
         int state = UNKNOWN;
-        if (layoutEditor.isAnimating()) {
+        if (isBlock && layoutEditor.isAnimating()) {
             state = getState();
         }
 
