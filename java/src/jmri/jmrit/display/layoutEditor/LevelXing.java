@@ -15,6 +15,7 @@ import javax.swing.*;
 import jmri.*;
 import jmri.jmrit.display.layoutEditor.blockRoutingTable.LayoutBlockRouteTableAction;
 import jmri.jmrit.signalling.SignallingGuiTools;
+import jmri.util.ColorUtil;
 import jmri.util.MathUtil;
 import org.slf4j.*;
 
@@ -1483,16 +1484,22 @@ public class LevelXing extends LayoutTrack {
      * @param g2 the graphics port to draw to
      */
     @Override
-    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock) {
+    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
         if (isMain == isMainlineAC()) {
             if (isBlock) {
                 setColorForTrackBlock(g2, getLayoutBlockAC());
-            }
+                if (isMark) {
+                    g2.setColor(ColorUtil.contrast(g2.getColor()));
+                }
+             }
             g2.draw(new Line2D.Double(getCoordsA(), getCoordsC()));
         }
         if (isMain == isMainlineBD()) {
             if (isBlock) {
                 setColorForTrackBlock(g2, getLayoutBlockBD());
+                 if (isMark) {
+                    g2.setColor(ColorUtil.contrast(g2.getColor()));
+                }
             }
             g2.draw(new Line2D.Double(getCoordsB(), getCoordsD()));
         }

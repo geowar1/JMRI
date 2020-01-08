@@ -17,6 +17,7 @@ import java.util.*;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import jmri.*;
+import jmri.util.ColorUtil;
 import jmri.util.MathUtil;
 import org.slf4j.*;
 
@@ -1110,7 +1111,7 @@ public class LayoutTurntable extends LayoutTrack {
      * {@inheritDoc}
      */
     @Override
-    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock) {
+    protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
         float trackWidth = 2.F;
         float halfTrackWidth = trackWidth / 2.f;
         double radius = getRadius(), diameter = 2.f * radius;
@@ -1142,7 +1143,10 @@ public class LayoutTurntable extends LayoutTrack {
                 } else {
                     setColorForTrackBlock(g2, ts.getLayoutBlock());
                 }
-            }
+                if (isMark) {
+                    g2.setColor(ColorUtil.contrast(g2.getColor()));
+                }
+             }
             if (main == isMain) {
                 Point2D pt2 = getRayCoordsOrdered(j);
                 Point2D delta = MathUtil.normalize(MathUtil.subtract(pt2, center), radius);
