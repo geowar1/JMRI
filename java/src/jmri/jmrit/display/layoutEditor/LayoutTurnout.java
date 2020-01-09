@@ -3299,6 +3299,9 @@ public class LayoutTurnout extends LayoutTrack {
      */
     @Override
     protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
+        if (isBlock && !isMark && getName().equals("TO1")) {
+            log.debug("TO1");
+        }
         if (isBlock && (getLayoutBlock() == null)) {
             // Skip the block layer if there is no block assigned.
             return;
@@ -3315,7 +3318,7 @@ public class LayoutTurnout extends LayoutTrack {
             boolean mainlineC = isMainlineC();
             boolean mainlineD = isMainlineD();
 
-            boolean drawUnselectedLeg = !isBlock || (!isMark && layoutEditor.isTurnoutDrawUnselectedLeg());
+            boolean drawUnselectedLeg = !isBlock && layoutEditor.isTurnoutDrawUnselectedLeg();
 
             Color color = g2.getColor();
 
@@ -3338,7 +3341,6 @@ public class LayoutTurnout extends LayoutTrack {
                 colorB = ColorUtil.contrast(colorB);
                 colorC = ColorUtil.contrast(colorC);
                 colorD = ColorUtil.contrast(colorD);
-                colorA = colorB = colorC = colorD = Color.BLUE;
             }
 
             // middles
@@ -3364,8 +3366,6 @@ public class LayoutTurnout extends LayoutTrack {
             if (isBlock && (isMark || layoutEditor.isAnimating())) {
                 state = getState();
             }
-
-            drawUnselectedLeg |= (!isMark && ((state == UNKNOWN) || (state == INCONSISTENT)));
 
             if (type == DOUBLE_XOVER) {
                 if (state == INCONSISTENT) {
@@ -3610,7 +3610,7 @@ public class LayoutTurnout extends LayoutTrack {
             } else if (isTurnoutTypeSlip()) {
                 log.error("slips should be being drawn by LayoutSlip sub-class");
             } else {    // LH, RH, or WYE Turnouts
-                if (!marked || (state != Turnout.INCONSISTENT)) {
+                if (!(isMark && marked) || ((state != Turnout.INCONSISTENT) && (state != Turnout.UNKNOWN))) {
                     // draw A<===>center
                     if (isMain == mainlineA) {
                         g2.setColor(colorA);
@@ -3631,7 +3631,9 @@ public class LayoutTurnout extends LayoutTrack {
                                 g2.draw(new Line2D.Double(MathUtil.twoThirdsPoint(pM, pC), pC));
                             }
                         }
-                    } else { //diverting path
+                    } 
+                    //diverting path
+                    if (continuingSense != state) {
                         // draw center<===>C
                         if (isMain == mainlineC) {
                             g2.setColor(colorC);
