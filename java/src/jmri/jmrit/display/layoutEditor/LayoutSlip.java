@@ -1116,153 +1116,154 @@ public class LayoutSlip extends LayoutTurnout {
 
     @Override
     protected void draw1(Graphics2D g2, boolean drawMain, boolean isBlock, boolean isMark) {
-        if (isBlock && !isMark && (getLayoutBlock() == null)) {
-            // Skip the block layer if there is no block assigned.
-            return;
-        }
+        if (!isMark || marked) {
+            if (isBlock && (getLayoutBlock() == null)) {
+                // Skip the block layer if there is no block assigned.
+                return;
+            }
 
-        Point2D pA = getCoordsA();
-        Point2D pB = getCoordsB();
-        Point2D pC = getCoordsC();
-        Point2D pD = getCoordsD();
+            Point2D pA = getCoordsA();
+            Point2D pB = getCoordsB();
+            Point2D pC = getCoordsC();
+            Point2D pD = getCoordsD();
 
-        boolean mainlineA = isMainlineA();
-        boolean mainlineB = isMainlineB();
-        boolean mainlineC = isMainlineC();
-        boolean mainlineD = isMainlineD();
+            boolean mainlineA = isMainlineA();
+            boolean mainlineB = isMainlineB();
+            boolean mainlineC = isMainlineC();
+            boolean mainlineD = isMainlineD();
 
-        boolean drawUnselectedLeg = !isBlock || (!isMark && layoutEditor.isTurnoutDrawUnselectedLeg());
+            boolean drawUnselectedLeg = !isBlock || (!isMark && layoutEditor.isTurnoutDrawUnselectedLeg());
 
-        int slipState = getSlipState();
+            int slipState = getSlipState();
 
-        Color color = g2.getColor();
+            Color color = g2.getColor();
 
-        // if this isn't a block line all these will be the same color
-        Color colorA = color, colorB = color, colorC = color, colorD = color;
+            // if this isn't a block line all these will be the same color
+            Color colorA = color, colorB = color, colorC = color, colorD = color;
 
-        if (isBlock) {
-            LayoutBlock layoutBlockA = getLayoutBlock();
-            colorA = (layoutBlockA != null) ? layoutBlockA.getBlockTrackColor() : color;
-            LayoutBlock layoutBlockB = getLayoutBlockB();
-            colorB = (layoutBlockB != null) ? layoutBlockB.getBlockTrackColor() : color;
-            LayoutBlock layoutBlockC = getLayoutBlockC();
-            colorC = (layoutBlockC != null) ? layoutBlockC.getBlockTrackColor() : color;
-            LayoutBlock layoutBlockD = getLayoutBlockD();
-            colorD = (layoutBlockD != null) ? layoutBlockD.getBlockTrackColor() : color;
+            if (isBlock) {
+                LayoutBlock layoutBlockA = getLayoutBlock();
+                colorA = (layoutBlockA != null) ? layoutBlockA.getBlockTrackColor() : color;
+                LayoutBlock layoutBlockB = getLayoutBlockB();
+                colorB = (layoutBlockB != null) ? layoutBlockB.getBlockTrackColor() : color;
+                LayoutBlock layoutBlockC = getLayoutBlockC();
+                colorC = (layoutBlockC != null) ? layoutBlockC.getBlockTrackColor() : color;
+                LayoutBlock layoutBlockD = getLayoutBlockD();
+                colorD = (layoutBlockD != null) ? layoutBlockD.getBlockTrackColor() : color;
 
-            if (slipState == STATE_AC) {
-                colorA = (layoutBlockA != null) ? layoutBlockA.getBlockColor() : color;
-                colorC = (layoutBlockC != null) ? layoutBlockC.getBlockColor() : color;
+                if (slipState == STATE_AC) {
+                    colorA = (layoutBlockA != null) ? layoutBlockA.getBlockColor() : color;
+                    colorC = (layoutBlockC != null) ? layoutBlockC.getBlockColor() : color;
+                } else if (slipState == STATE_BD) {
+                    colorB = (layoutBlockB != null) ? layoutBlockB.getBlockColor() : color;
+                    colorD = (layoutBlockD != null) ? layoutBlockD.getBlockColor() : color;
+                } else if (slipState == STATE_AD) {
+                    colorA = (layoutBlockA != null) ? layoutBlockA.getBlockColor() : color;
+                    colorD = (layoutBlockD != null) ? layoutBlockD.getBlockColor() : color;
+                } else if (slipState == STATE_BC) {
+                    colorB = (layoutBlockB != null) ? layoutBlockB.getBlockColor() : color;
+                    colorC = (layoutBlockC != null) ? layoutBlockC.getBlockColor() : color;
+                }
+            }
+
+            if (isMark) {
+                colorA = ColorUtil.contrast(colorA);
+                colorB = ColorUtil.contrast(colorB);
+                colorC = ColorUtil.contrast(colorC);
+                colorD = ColorUtil.contrast(colorD);
+            }
+
+            Point2D oneForthPointAC = MathUtil.oneFourthPoint(pA, pC);
+            Point2D oneThirdPointAC = MathUtil.oneThirdPoint(pA, pC);
+            Point2D midPointAC = MathUtil.midPoint(pA, pC);
+            Point2D twoThirdsPointAC = MathUtil.twoThirdsPoint(pA, pC);
+            Point2D threeFourthsPointAC = MathUtil.threeFourthsPoint(pA, pC);
+
+            Point2D oneForthPointBD = MathUtil.oneFourthPoint(pB, pD);
+            Point2D oneThirdPointBD = MathUtil.oneThirdPoint(pB, pD);
+            Point2D midPointBD = MathUtil.midPoint(pB, pD);
+            Point2D twoThirdsPointBD = MathUtil.twoThirdsPoint(pB, pD);
+            Point2D threeFourthsPointBD = MathUtil.threeFourthsPoint(pB, pD);
+
+            Point2D midPointAD = MathUtil.midPoint(oneThirdPointAC, twoThirdsPointBD);
+            Point2D midPointBC = MathUtil.midPoint(oneThirdPointBD, twoThirdsPointAC);
+
+            if (slipState == STATE_AD) {
+                // draw A<===>D
+                if (drawMain == mainlineA) {
+                    g2.setColor(colorA);
+                    g2.draw(new Line2D.Double(pA, oneThirdPointAC));
+                    g2.draw(new Line2D.Double(oneThirdPointAC, midPointAD));
+                }
+                if (drawMain == mainlineD) {
+                    g2.setColor(colorD);
+                    g2.draw(new Line2D.Double(midPointAD, twoThirdsPointBD));
+                    g2.draw(new Line2D.Double(twoThirdsPointBD, pD));
+                }
+            } else if (slipState == STATE_AC) {
+                // draw A<===>C
+                if (drawMain == mainlineA) {
+                    g2.setColor(colorA);
+                    g2.draw(new Line2D.Double(pA, oneThirdPointAC));
+                    g2.draw(new Line2D.Double(oneThirdPointAC, midPointAC));
+                }
+                if (drawMain == mainlineC) {
+                    g2.setColor(colorC);
+                    g2.draw(new Line2D.Double(midPointAC, twoThirdsPointAC));
+                    g2.draw(new Line2D.Double(twoThirdsPointAC, pC));
+                }
             } else if (slipState == STATE_BD) {
-                colorB = (layoutBlockB != null) ? layoutBlockB.getBlockColor() : color;
-                colorD = (layoutBlockD != null) ? layoutBlockD.getBlockColor() : color;
-            } else if (slipState == STATE_AD) {
-                colorA = (layoutBlockA != null) ? layoutBlockA.getBlockColor() : color;
-                colorD = (layoutBlockD != null) ? layoutBlockD.getBlockColor() : color;
-            } else if (slipState == STATE_BC) {
-                colorB = (layoutBlockB != null) ? layoutBlockB.getBlockColor() : color;
-                colorC = (layoutBlockC != null) ? layoutBlockC.getBlockColor() : color;
-            }
-        }
-
-        if (isMark) {
-            colorA = ColorUtil.contrast(colorA);
-            colorB = ColorUtil.contrast(colorB);
-            colorC = ColorUtil.contrast(colorC);
-            colorD = ColorUtil.contrast(colorD);
-                    g2.setColor(Color.RED);
-        }
-
-        Point2D oneForthPointAC = MathUtil.oneFourthPoint(pA, pC);
-        Point2D oneThirdPointAC = MathUtil.oneThirdPoint(pA, pC);
-        Point2D midPointAC = MathUtil.midPoint(pA, pC);
-        Point2D twoThirdsPointAC = MathUtil.twoThirdsPoint(pA, pC);
-        Point2D threeFourthsPointAC = MathUtil.threeFourthsPoint(pA, pC);
-
-        Point2D oneForthPointBD = MathUtil.oneFourthPoint(pB, pD);
-        Point2D oneThirdPointBD = MathUtil.oneThirdPoint(pB, pD);
-        Point2D midPointBD = MathUtil.midPoint(pB, pD);
-        Point2D twoThirdsPointBD = MathUtil.twoThirdsPoint(pB, pD);
-        Point2D threeFourthsPointBD = MathUtil.threeFourthsPoint(pB, pD);
-
-        Point2D midPointAD = MathUtil.midPoint(oneThirdPointAC, twoThirdsPointBD);
-        Point2D midPointBC = MathUtil.midPoint(oneThirdPointBD, twoThirdsPointAC);
-
-        if (slipState == STATE_AD) {
-            // draw A<===>D
-            if (drawMain == mainlineA) {
-                g2.setColor(colorA);
-                g2.draw(new Line2D.Double(pA, oneThirdPointAC));
-                g2.draw(new Line2D.Double(oneThirdPointAC, midPointAD));
-            }
-            if (drawMain == mainlineD) {
-                g2.setColor(colorD);
-                g2.draw(new Line2D.Double(midPointAD, twoThirdsPointBD));
-                g2.draw(new Line2D.Double(twoThirdsPointBD, pD));
-            }
-        } else if (slipState == STATE_AC) {
-            // draw A<===>C
-            if (drawMain == mainlineA) {
-                g2.setColor(colorA);
-                g2.draw(new Line2D.Double(pA, oneThirdPointAC));
-                g2.draw(new Line2D.Double(oneThirdPointAC, midPointAC));
-            }
-            if (drawMain == mainlineC) {
-                g2.setColor(colorC);
-                g2.draw(new Line2D.Double(midPointAC, twoThirdsPointAC));
-                g2.draw(new Line2D.Double(twoThirdsPointAC, pC));
-            }
-        } else if (slipState == STATE_BD) {
-            // draw B<===>D
-            if (drawMain == mainlineB) {
-                g2.setColor(colorB);
-                g2.draw(new Line2D.Double(pB, oneThirdPointBD));
-                g2.draw(new Line2D.Double(oneThirdPointBD, midPointBD));
-            }
-            if (drawMain == mainlineD) {
-                g2.setColor(colorD);
-                g2.draw(new Line2D.Double(midPointBD, twoThirdsPointBD));
-                g2.draw(new Line2D.Double(twoThirdsPointBD, pD));
-            }
-        } else if (slipState == STATE_BC) {
-            if (getTurnoutType() == DOUBLE_SLIP) {
-                // draw B<===>C
+                // draw B<===>D
                 if (drawMain == mainlineB) {
                     g2.setColor(colorB);
                     g2.draw(new Line2D.Double(pB, oneThirdPointBD));
-                    g2.draw(new Line2D.Double(oneThirdPointBD, midPointBC));
+                    g2.draw(new Line2D.Double(oneThirdPointBD, midPointBD));
                 }
-                if (drawMain == mainlineC) {
-                    g2.setColor(colorC);
-                    g2.draw(new Line2D.Double(midPointBC, twoThirdsPointAC));
-                    g2.draw(new Line2D.Double(twoThirdsPointAC, pC));
-                }
-            }   // DOUBLE_SLIP
-        }
-
-        if (drawUnselectedLeg) {
-            if ((slipState != STATE_AC) && (slipState != STATE_AD)) {
-                if (drawMain == mainlineA) {
-                    g2.setColor(colorA);
-                    g2.draw(new Line2D.Double(pA, oneForthPointAC));
-                }
-            }
-            if ((slipState != STATE_BC) && (slipState != STATE_BD)) {
-                if (drawMain == mainlineB) {
-                    g2.setColor(colorB);
-                    g2.draw(new Line2D.Double(pB, oneForthPointBD));
-                }
-            }
-            if ((slipState != STATE_AC) && (slipState != STATE_BC)) {
-                if (drawMain == mainlineC) {
-                    g2.setColor(colorC);
-                    g2.draw(new Line2D.Double(threeFourthsPointAC, pC));
-                }
-            }
-            if ((slipState != STATE_AD) && (slipState != STATE_BD)) {
                 if (drawMain == mainlineD) {
                     g2.setColor(colorD);
-                    g2.draw(new Line2D.Double(threeFourthsPointBD, pD));
+                    g2.draw(new Line2D.Double(midPointBD, twoThirdsPointBD));
+                    g2.draw(new Line2D.Double(twoThirdsPointBD, pD));
+                }
+            } else if (slipState == STATE_BC) {
+                if (getTurnoutType() == DOUBLE_SLIP) {
+                    // draw B<===>C
+                    if (drawMain == mainlineB) {
+                        g2.setColor(colorB);
+                        g2.draw(new Line2D.Double(pB, oneThirdPointBD));
+                        g2.draw(new Line2D.Double(oneThirdPointBD, midPointBC));
+                    }
+                    if (drawMain == mainlineC) {
+                        g2.setColor(colorC);
+                        g2.draw(new Line2D.Double(midPointBC, twoThirdsPointAC));
+                        g2.draw(new Line2D.Double(twoThirdsPointAC, pC));
+                    }
+                }   // DOUBLE_SLIP
+            }
+
+            if (drawUnselectedLeg) {
+                if ((slipState != STATE_AC) && (slipState != STATE_AD)) {
+                    if (drawMain == mainlineA) {
+                        g2.setColor(colorA);
+                        g2.draw(new Line2D.Double(pA, oneForthPointAC));
+                    }
+                }
+                if ((slipState != STATE_BC) && (slipState != STATE_BD)) {
+                    if (drawMain == mainlineB) {
+                        g2.setColor(colorB);
+                        g2.draw(new Line2D.Double(pB, oneForthPointBD));
+                    }
+                }
+                if ((slipState != STATE_AC) && (slipState != STATE_BC)) {
+                    if (drawMain == mainlineC) {
+                        g2.setColor(colorC);
+                        g2.draw(new Line2D.Double(threeFourthsPointAC, pC));
+                    }
+                }
+                if ((slipState != STATE_AD) && (slipState != STATE_BD)) {
+                    if (drawMain == mainlineD) {
+                        g2.setColor(colorD);
+                        g2.draw(new Line2D.Double(threeFourthsPointBD, pD));
+                    }
                 }
             }
         }

@@ -1485,23 +1485,25 @@ public class LevelXing extends LayoutTrack {
      */
     @Override
     protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
-        if (isMain == isMainlineAC()) {
-            if (isBlock) {
-                setColorForTrackBlock(g2, getLayoutBlockAC());
-                if (isMark) {
-                    g2.setColor(ColorUtil.contrast(g2.getColor()));
+        if (!isMark || marked) {
+            if (isMain == isMainlineAC()) {
+                if (isBlock) {
+                    setColorForTrackBlock(g2, getLayoutBlockAC());
+                    if (isMark) {
+                        g2.setColor(ColorUtil.contrast(g2.getColor()));
+                    }
                 }
-             }
-            g2.draw(new Line2D.Double(getCoordsA(), getCoordsC()));
-        }
-        if (isMain == isMainlineBD()) {
-            if (isBlock) {
-                setColorForTrackBlock(g2, getLayoutBlockBD());
-                 if (isMark) {
-                    g2.setColor(ColorUtil.contrast(g2.getColor()));
-                }
+                g2.draw(new Line2D.Double(getCoordsA(), getCoordsC()));
             }
-            g2.draw(new Line2D.Double(getCoordsB(), getCoordsD()));
+            if (isMain == isMainlineBD()) {
+                if (isBlock) {
+                    setColorForTrackBlock(g2, getLayoutBlockBD());
+                    if (isMark) {
+                        g2.setColor(ColorUtil.contrast(g2.getColor()));
+                    }
+                }
+                g2.draw(new Line2D.Double(getCoordsB(), getCoordsD()));
+            }
         }
     }
 

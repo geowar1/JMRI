@@ -2235,15 +2235,15 @@ public class TrackSegment extends LayoutTrack {
      */
     @Override
     protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
-        if (getName().equals("T15")) {
-            log.debug("STOP");
-        }
-        if (!isBlock && isDashed() && getLayoutBlock() != null) {
+//        if (getName().equals("T15")) {
+//            log.debug("STOP");
+//        }
+        if (!isBlock && !isMark && isDashed() && getLayoutBlock() != null) {
             // Skip the dashed rail layer, the block layer will display the dashed track
             // This removes random rail fragments from between the block dashes
             return;
         }
-        if (isMain == mainline) {
+        if ((isMain == mainline) && (!isMark || marked)) {
             if (isBlock) {
                 setColorForTrackBlock(g2, getLayoutBlock());
                 if (isMark) {

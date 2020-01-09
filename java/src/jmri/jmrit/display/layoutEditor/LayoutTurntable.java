@@ -85,7 +85,6 @@ public class LayoutTurntable extends LayoutTrack {
     //
     // Accessor methods
     //
-
     /**
      * Get the radius for this turntable.
      *
@@ -451,6 +450,7 @@ public class LayoutTurntable extends LayoutTrack {
     public void setRayCoordsIndexed(Point2D point, int index) {
         setRayCoordsIndexed(point.getX(), point.getY(), index);
     }
+
     /**
      * Get the coordinates for a specified connection type.
      *
@@ -563,7 +563,6 @@ public class LayoutTurntable extends LayoutTrack {
     //
     // Modify coordinates methods
     //
-
     /**
      * Scale this LayoutTrack's coordinates by the x and y factors.
      *
@@ -578,7 +577,8 @@ public class LayoutTurntable extends LayoutTrack {
     }
 
     /**
-     * Translate (2D move) this LayoutTrack's coordinates by the x and y factors.
+     * Translate (2D move) this LayoutTrack's coordinates by the x and y
+     * factors.
      *
      * @param xFactor the amount to translate X coordinates
      * @param yFactor the amount to translate Y coordinates
@@ -894,7 +894,6 @@ public class LayoutTurntable extends LayoutTrack {
         //
         // Accessor routines
         //
-
         /**
          * Set ray track disabled.
          *
@@ -1112,50 +1111,52 @@ public class LayoutTurntable extends LayoutTrack {
      */
     @Override
     protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
-        float trackWidth = 2.F;
-        float halfTrackWidth = trackWidth / 2.f;
-        double radius = getRadius(), diameter = 2.f * radius;
+        if (!isMark || marked) {
+            float trackWidth = 2.F;
+            float halfTrackWidth = trackWidth / 2.f;
+            double radius = getRadius(), diameter = 2.f * radius;
 
-        if (isBlock && isMain) {
-            double radius2 = Math.max(radius / 4.f, trackWidth * 2);
-            double diameter2 = radius2 * 2.f;
-            Stroke stroke = g2.getStroke();
-            Color color = g2.getColor();
-            // draw turntable circle - default track color, side track width
-            g2.setStroke(new BasicStroke(trackWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
-            g2.setColor(layoutEditor.getDefaultTrackColorColor());
-            g2.draw(new Ellipse2D.Double(center.getX() - radius, center.getY() - radius, diameter, diameter));
-            g2.draw(new Ellipse2D.Double(center.getX() - radius2, center.getY() - radius2, diameter2, diameter2));
-            g2.setStroke(stroke);
-            g2.setColor(color);
-        }
-
-        // draw ray tracks
-        for (int j = 0; j < getNumberRays(); j++) {
-            boolean main = false;
-            TrackSegment ts = getRayConnectOrdered(j);
-            if (ts != null) {
-                main = ts.isMainline();
+            if (isBlock && isMain) {
+                double radius2 = Math.max(radius / 4.f, trackWidth * 2);
+                double diameter2 = radius2 * 2.f;
+                Stroke stroke = g2.getStroke();
+                Color color = g2.getColor();
+                // draw turntable circle - default track color, side track width
+                g2.setStroke(new BasicStroke(trackWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+                g2.setColor(layoutEditor.getDefaultTrackColorColor());
+                g2.draw(new Ellipse2D.Double(center.getX() - radius, center.getY() - radius, diameter, diameter));
+                g2.draw(new Ellipse2D.Double(center.getX() - radius2, center.getY() - radius2, diameter2, diameter2));
+                g2.setStroke(stroke);
+                g2.setColor(color);
             }
-            if (isBlock) {
-                if (ts == null) {
-                    g2.setColor(layoutEditor.getDefaultTrackColorColor());
-                } else {
-                    setColorForTrackBlock(g2, ts.getLayoutBlock());
+
+            // draw ray tracks
+            for (int j = 0; j < getNumberRays(); j++) {
+                boolean main = false;
+                TrackSegment ts = getRayConnectOrdered(j);
+                if (ts != null) {
+                    main = ts.isMainline();
                 }
-                if (isMark) {
-                    g2.setColor(ColorUtil.contrast(g2.getColor()));
+                if (isBlock) {
+                    if (ts == null) {
+                        g2.setColor(layoutEditor.getDefaultTrackColorColor());
+                    } else {
+                        setColorForTrackBlock(g2, ts.getLayoutBlock());
+                    }
+                    if (isMark) {
+                        g2.setColor(ColorUtil.contrast(g2.getColor()));
+                    }
                 }
-             }
-            if (main == isMain) {
-                Point2D pt2 = getRayCoordsOrdered(j);
-                Point2D delta = MathUtil.normalize(MathUtil.subtract(pt2, center), radius);
-                Point2D pt1 = MathUtil.add(center, delta);
-                g2.draw(new Line2D.Double(pt1, pt2));
-                if (isTurnoutControlled() && (getPosition() == j)) {
-                    delta = MathUtil.normalize(delta, radius - halfTrackWidth);
-                    pt1 = MathUtil.subtract(center, delta);
+                if (main == isMain) {
+                    Point2D pt2 = getRayCoordsOrdered(j);
+                    Point2D delta = MathUtil.normalize(MathUtil.subtract(pt2, center), radius);
+                    Point2D pt1 = MathUtil.add(center, delta);
                     g2.draw(new Line2D.Double(pt1, pt2));
+                    if (isTurnoutControlled() && (getPosition() == j)) {
+                        delta = MathUtil.normalize(delta, radius - halfTrackWidth);
+                        pt1 = MathUtil.subtract(center, delta);
+                        g2.draw(new Line2D.Double(pt1, pt2));
+                    }
                 }
             }
         }

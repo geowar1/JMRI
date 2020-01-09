@@ -3299,341 +3299,352 @@ public class LayoutTurnout extends LayoutTrack {
      */
     @Override
     protected void draw1(Graphics2D g2, boolean isMain, boolean isBlock, boolean isMark) {
-        if (isBlock && !isMark && (getLayoutBlock() == null)) {
+        if (isBlock && (getLayoutBlock() == null)) {
             // Skip the block layer if there is no block assigned.
             return;
         }
 
-        Point2D pA = getCoordsA();
-        Point2D pB = getCoordsB();
-        Point2D pC = getCoordsC();
-        Point2D pD = getCoordsD();
+        if (!isMark || marked) {
+            Point2D pA = getCoordsA();
+            Point2D pB = getCoordsB();
+            Point2D pC = getCoordsC();
+            Point2D pD = getCoordsD();
 
-        boolean mainlineA = isMainlineA();
-        boolean mainlineB = isMainlineB();
-        boolean mainlineC = isMainlineC();
-        boolean mainlineD = isMainlineD();
+            boolean mainlineA = isMainlineA();
+            boolean mainlineB = isMainlineB();
+            boolean mainlineC = isMainlineC();
+            boolean mainlineD = isMainlineD();
 
-        boolean drawUnselectedLeg = !isBlock || (!isMark && layoutEditor.isTurnoutDrawUnselectedLeg());
+            boolean drawUnselectedLeg = !isBlock || (!isMark && layoutEditor.isTurnoutDrawUnselectedLeg());
 
-        Color color = g2.getColor();
+            Color color = g2.getColor();
 
-        // if this isn't a block line all these will be the same color
-        Color colorA = color, colorB = color, colorC = color, colorD = color;
+            // if this isn't a block line all these will be the same color
+            Color colorA = color, colorB = color, colorC = color, colorD = color;
 
-        if (isBlock) {
-            LayoutBlock lb = getLayoutBlock();
-            colorA = (lb == null) ? color : lb.getBlockColor();
-            lb = getLayoutBlockB();
-            colorB = (lb == null) ? color : lb.getBlockColor();
-            lb = getLayoutBlockC();
-            colorC = (lb == null) ? color : lb.getBlockColor();
-            lb = getLayoutBlockD();
-            colorD = (lb == null) ? color : lb.getBlockColor();
-        }
+            if (isBlock) {
+                LayoutBlock lb = getLayoutBlock();
+                colorA = (lb == null) ? color : lb.getBlockColor();
+                lb = getLayoutBlockB();
+                colorB = (lb == null) ? color : lb.getBlockColor();
+                lb = getLayoutBlockC();
+                colorC = (lb == null) ? color : lb.getBlockColor();
+                lb = getLayoutBlockD();
+                colorD = (lb == null) ? color : lb.getBlockColor();
+            }
 
-        if (isMark) {
-            colorA = ColorUtil.contrast(colorA);
-            colorB = ColorUtil.contrast(colorB);
-            colorC = ColorUtil.contrast(colorC);
-            colorD = ColorUtil.contrast(colorD);
-        }
+            if (isMark) {
+                colorA = ColorUtil.contrast(colorA);
+                colorB = ColorUtil.contrast(colorB);
+                colorC = ColorUtil.contrast(colorC);
+                colorD = ColorUtil.contrast(colorD);
+                colorA = colorB = colorC = colorD = Color.BLUE;
+            }
 
-        // middles
-        Point2D pM = getCoordsCenter();
-        Point2D pABM = MathUtil.midPoint(pA, pB);
-        Point2D pAM = MathUtil.lerp(pA, pABM, 4.0 / 8.0);
-        Point2D pAMP = MathUtil.midPoint(pAM, pABM);
-        Point2D pBM = MathUtil.lerp(pB, pABM, 4.0 / 8.0);
-        Point2D pBMP = MathUtil.midPoint(pBM, pABM);
+            // middles
+            Point2D pM = getCoordsCenter();
+            Point2D pABM = MathUtil.midPoint(pA, pB);
+            Point2D pAM = MathUtil.lerp(pA, pABM, 4.0 / 8.0);
+            Point2D pAMP = MathUtil.midPoint(pAM, pABM);
+            Point2D pBM = MathUtil.lerp(pB, pABM, 4.0 / 8.0);
+            Point2D pBMP = MathUtil.midPoint(pBM, pABM);
 
-        Point2D pCDM = MathUtil.midPoint(pC, pD);
-        Point2D pCM = MathUtil.lerp(pC, pCDM, 4.0 / 8.0);
-        Point2D pCMP = MathUtil.midPoint(pCM, pCDM);
-        Point2D pDM = MathUtil.lerp(pD, pCDM, 4.0 / 8.0);
-        Point2D pDMP = MathUtil.midPoint(pDM, pCDM);
+            Point2D pCDM = MathUtil.midPoint(pC, pD);
+            Point2D pCM = MathUtil.lerp(pC, pCDM, 4.0 / 8.0);
+            Point2D pCMP = MathUtil.midPoint(pCM, pCDM);
+            Point2D pDM = MathUtil.lerp(pD, pCDM, 4.0 / 8.0);
+            Point2D pDMP = MathUtil.midPoint(pDM, pCDM);
 
-        Point2D pAF = MathUtil.midPoint(pAM, pM);
-        Point2D pBF = MathUtil.midPoint(pBM, pM);
-        Point2D pCF = MathUtil.midPoint(pCM, pM);
-        Point2D pDF = MathUtil.midPoint(pDM, pM);
+            Point2D pAF = MathUtil.midPoint(pAM, pM);
+            Point2D pBF = MathUtil.midPoint(pBM, pM);
+            Point2D pCF = MathUtil.midPoint(pCM, pM);
+            Point2D pDF = MathUtil.midPoint(pDM, pM);
 
-        int state = UNKNOWN;
-        if (isBlock && (isMark || layoutEditor.isAnimating())) {
-            state = getState();
-        }
+            int state = UNKNOWN;
+            if (isBlock && (isMark || layoutEditor.isAnimating())) {
+                state = getState();
+            }
 
-        if (type == DOUBLE_XOVER) {
-            if (state == INCONSISTENT) {
-                if (isMain == mainlineA) {
-                    g2.setColor(colorA);
-                    g2.draw(new Line2D.Double(pA, pAM));
-                }
-                if (isMain == mainlineB) {
-                    g2.setColor(colorB);
-                    g2.draw(new Line2D.Double(pB, pBM));
-                }
-                if (isMain == mainlineC) {
-                    g2.setColor(colorC);
-                    g2.draw(new Line2D.Double(pC, pCM));
-                }
-                if (isMain == mainlineD) {
-                    g2.setColor(colorD);
-                    g2.draw(new Line2D.Double(pD, pDM));
-                }
-                if (!isBlock || drawUnselectedLeg) {
+            drawUnselectedLeg |= (!isMark && ((state == UNKNOWN) || (state == INCONSISTENT)));
+
+            if (type == DOUBLE_XOVER) {
+                if (state == INCONSISTENT) {
                     if (isMain == mainlineA) {
                         g2.setColor(colorA);
-                        g2.draw(new Line2D.Double(pAF, pM));
-                    }
-                    if (isMain == mainlineC) {
-                        g2.setColor(colorC);
-                        g2.draw(new Line2D.Double(pCF, pM));
+                        g2.draw(new Line2D.Double(pA, pAM));
                     }
                     if (isMain == mainlineB) {
                         g2.setColor(colorB);
-                        g2.draw(new Line2D.Double(pBF, pM));
+                        g2.draw(new Line2D.Double(pB, pBM));
+                    }
+                    if (isMain == mainlineC) {
+                        g2.setColor(colorC);
+                        g2.draw(new Line2D.Double(pC, pCM));
                     }
                     if (isMain == mainlineD) {
                         g2.setColor(colorD);
-                        g2.draw(new Line2D.Double(pDF, pM));
+                        g2.draw(new Line2D.Double(pD, pDM));
+                    }
+                    if (!isBlock || drawUnselectedLeg) {
+                        if (isMain == mainlineA) {
+                            g2.setColor(colorA);
+                            g2.draw(new Line2D.Double(pAF, pM));
+                        }
+                        if (isMain == mainlineC) {
+                            g2.setColor(colorC);
+                            g2.draw(new Line2D.Double(pCF, pM));
+                        }
+                        if (isMain == mainlineB) {
+                            g2.setColor(colorB);
+                            g2.draw(new Line2D.Double(pBF, pM));
+                        }
+                        if (isMain == mainlineD) {
+                            g2.setColor(colorD);
+                            g2.draw(new Line2D.Double(pDF, pM));
+                        }
+                    }
+                } else {
+                    // unknown or continuing path - not crossed over
+                    if (isMark ? (state == Turnout.CLOSED) : (state != Turnout.THROWN)) {
+                        if (isMain == mainlineA) {
+                            g2.setColor(colorA);
+                            g2.draw(new Line2D.Double(pA, pABM));
+                            if (!isBlock || drawUnselectedLeg) {
+                                g2.draw(new Line2D.Double(pAF, pM));
+                            }
+                        }
+                        if (isMain == mainlineB) {
+                            g2.setColor(colorB);
+                            g2.draw(new Line2D.Double(pB, pABM));
+                            if (!isBlock || drawUnselectedLeg) {
+                                g2.draw(new Line2D.Double(pBF, pM));
+                            }
+                        }
+                        if (isMain == mainlineC) {
+                            g2.setColor(colorC);
+                            g2.draw(new Line2D.Double(pC, pCDM));
+                            if (!isBlock || drawUnselectedLeg) {
+                                g2.draw(new Line2D.Double(pCF, pM));
+                            }
+                        }
+                        if (isMain == mainlineD) {
+                            g2.setColor(colorD);
+                            g2.draw(new Line2D.Double(pD, pCDM));
+                            if (!isBlock || drawUnselectedLeg) {
+                                g2.draw(new Line2D.Double(pDF, pM));
+                            }
+                        }
+                    }
+                    // unknown or diverting path - crossed over
+                    if (isMark ? (state == Turnout.THROWN) : (state != Turnout.CLOSED)) {
+                        if (isMain == mainlineA) {
+                            g2.setColor(colorA);
+                            g2.draw(new Line2D.Double(pA, pAM));
+                            g2.draw(new Line2D.Double(pAM, pM));
+                            if (!isBlock || drawUnselectedLeg) {
+                                g2.draw(new Line2D.Double(pAMP, pABM));
+                            }
+                        }
+                        if (isMain == mainlineB) {
+                            g2.setColor(colorB);
+                            g2.draw(new Line2D.Double(pB, pBM));
+                            g2.draw(new Line2D.Double(pBM, pM));
+                            if (!isBlock || drawUnselectedLeg) {
+                                g2.draw(new Line2D.Double(pBMP, pABM));
+                            }
+                        }
+                        if (isMain == mainlineC) {
+                            g2.setColor(colorC);
+                            g2.draw(new Line2D.Double(pC, pCM));
+                            g2.draw(new Line2D.Double(pCM, pM));
+                            if (!isBlock || drawUnselectedLeg) {
+                                g2.draw(new Line2D.Double(pCMP, pCDM));
+                            }
+                        }
+                        if (isMain == mainlineD) {
+                            g2.setColor(colorD);
+                            g2.draw(new Line2D.Double(pD, pDM));
+                            g2.draw(new Line2D.Double(pDM, pM));
+                            if (!isBlock || drawUnselectedLeg) {
+                                g2.draw(new Line2D.Double(pDMP, pCDM));
+                            }
+                        }
                     }
                 }
-            } else {
+            } else if ((type == RH_XOVER)
+                    || (type == LH_XOVER)) {
+                // draw (rh & lh) cross overs
+                pAF = MathUtil.midPoint(pABM, pM);
+                pBF = MathUtil.midPoint(pABM, pM);
+                pCF = MathUtil.midPoint(pCDM, pM);
+                pDF = MathUtil.midPoint(pCDM, pM);
                 // unknown or continuing path - not crossed over
                 if (isMark ? (state == Turnout.CLOSED) : (state != Turnout.THROWN)) {
                     if (isMain == mainlineA) {
                         g2.setColor(colorA);
                         g2.draw(new Line2D.Double(pA, pABM));
-                        if (!isBlock || drawUnselectedLeg) {
-                            g2.draw(new Line2D.Double(pAF, pM));
-                        }
                     }
                     if (isMain == mainlineB) {
                         g2.setColor(colorB);
-                        g2.draw(new Line2D.Double(pB, pABM));
-                        if (!isBlock || drawUnselectedLeg) {
-                            g2.draw(new Line2D.Double(pBF, pM));
-                        }
+                        g2.draw(new Line2D.Double(pABM, pB));
                     }
                     if (isMain == mainlineC) {
                         g2.setColor(colorC);
                         g2.draw(new Line2D.Double(pC, pCDM));
-                        if (!isBlock || drawUnselectedLeg) {
-                            g2.draw(new Line2D.Double(pCF, pM));
-                        }
                     }
                     if (isMain == mainlineD) {
                         g2.setColor(colorD);
-                        g2.draw(new Line2D.Double(pD, pCDM));
-                        if (!isBlock || drawUnselectedLeg) {
-                            g2.draw(new Line2D.Double(pDF, pM));
+                        g2.draw(new Line2D.Double(pCDM, pD));
+                    }
+                    if (!isBlock || drawUnselectedLeg) {
+                        if (getTurnoutType() == RH_XOVER) {
+                            if (isMain == mainlineA) {
+                                g2.setColor(colorA);
+                                g2.draw(new Line2D.Double(pAF, pM));
+                            }
+                            if (isMain == mainlineC) {
+                                g2.setColor(colorC);
+                                g2.draw(new Line2D.Double(pCF, pM));
+                            }
+                        } else if (getTurnoutType() == LH_XOVER) {
+                            if (isMain == mainlineB) {
+                                g2.setColor(colorB);
+                                g2.draw(new Line2D.Double(pBF, pM));
+                            }
+                            if (isMain == mainlineD) {
+                                g2.setColor(colorD);
+                                g2.draw(new Line2D.Double(pDF, pM));
+                            }
                         }
                     }
                 }
                 // unknown or diverting path - crossed over
                 if (isMark ? (state == Turnout.THROWN) : (state != Turnout.CLOSED)) {
+                    if (getTurnoutType() == RH_XOVER) {
+                        if (isMain == mainlineA) {
+                            g2.setColor(colorA);
+                            g2.draw(new Line2D.Double(pA, pABM));
+                            g2.draw(new Line2D.Double(pABM, pM));
+                        }
+                        if (!isBlock || drawUnselectedLeg) {
+                            if (isMain == mainlineB) {
+                                g2.setColor(colorB);
+                                g2.draw(new Line2D.Double(pBM, pB));
+                            }
+                        }
+                        if (isMain == mainlineC) {
+                            g2.setColor(colorC);
+                            g2.draw(new Line2D.Double(pC, pCDM));
+                            g2.draw(new Line2D.Double(pCDM, pM));
+                        }
+                        if (!isBlock || drawUnselectedLeg) {
+                            if (isMain == mainlineD) {
+                                g2.setColor(colorD);
+                                g2.draw(new Line2D.Double(pDM, pD));
+                            }
+                        }
+                    } else if (getTurnoutType() == LH_XOVER) {
+                        if (!isBlock || drawUnselectedLeg) {
+                            if (isMain == mainlineA) {
+                                g2.setColor(colorA);
+                                g2.draw(new Line2D.Double(pA, pAM));
+                            }
+                        }
+                        if (isMain == mainlineB) {
+                            g2.setColor(colorB);
+                            g2.draw(new Line2D.Double(pB, pABM));
+                            g2.draw(new Line2D.Double(pABM, pM));
+                        }
+                        if (!isBlock || drawUnselectedLeg) {
+                            if (isMain == mainlineC) {
+                                g2.setColor(colorC);
+                                g2.draw(new Line2D.Double(pC, pCM));
+                            }
+                        }
+                        if (isMain == mainlineD) {
+                            g2.setColor(colorD);
+                            g2.draw(new Line2D.Double(pD, pCDM));
+                            g2.draw(new Line2D.Double(pCDM, pM));
+                        }
+                    }
+                }
+                if (false && (state == INCONSISTENT)) {
                     if (isMain == mainlineA) {
                         g2.setColor(colorA);
                         g2.draw(new Line2D.Double(pA, pAM));
-                        g2.draw(new Line2D.Double(pAM, pM));
-                        if (!isBlock || drawUnselectedLeg) {
-                            g2.draw(new Line2D.Double(pAMP, pABM));
-                        }
                     }
                     if (isMain == mainlineB) {
                         g2.setColor(colorB);
                         g2.draw(new Line2D.Double(pB, pBM));
-                        g2.draw(new Line2D.Double(pBM, pM));
-                        if (!isBlock || drawUnselectedLeg) {
-                            g2.draw(new Line2D.Double(pBMP, pABM));
-                        }
                     }
                     if (isMain == mainlineC) {
                         g2.setColor(colorC);
                         g2.draw(new Line2D.Double(pC, pCM));
-                        g2.draw(new Line2D.Double(pCM, pM));
-                        if (!isBlock || drawUnselectedLeg) {
-                            g2.draw(new Line2D.Double(pCMP, pCDM));
-                        }
                     }
                     if (isMain == mainlineD) {
                         g2.setColor(colorD);
                         g2.draw(new Line2D.Double(pD, pDM));
-                        g2.draw(new Line2D.Double(pDM, pM));
-                        if (!isBlock || drawUnselectedLeg) {
-                            g2.draw(new Line2D.Double(pDMP, pCDM));
+                    }
+                    if (!isBlock || drawUnselectedLeg) {
+                        if (getTurnoutType() == RH_XOVER) {
+                            if (isMain == mainlineA) {
+                                g2.setColor(colorA);
+                                g2.draw(new Line2D.Double(pAF, pM));
+                            }
+                            if (isMain == mainlineC) {
+                                g2.setColor(colorC);
+                                g2.draw(new Line2D.Double(pCF, pM));
+                            }
+                        } else if (getTurnoutType() == LH_XOVER) {
+                            if (isMain == mainlineB) {
+                                g2.setColor(colorB);
+                                g2.draw(new Line2D.Double(pBF, pM));
+                            }
+                            if (isMain == mainlineD) {
+                                g2.setColor(colorD);
+                                g2.draw(new Line2D.Double(pDF, pM));
+                            }
                         }
                     }
                 }
-            }
-        } else if ((type == RH_XOVER)
-                || (type == LH_XOVER)) {    // draw (rh & lh) cross overs
-            pAF = MathUtil.midPoint(pABM, pM);
-            pBF = MathUtil.midPoint(pABM, pM);
-            pCF = MathUtil.midPoint(pCDM, pM);
-            pDF = MathUtil.midPoint(pCDM, pM);
-            if (state != Turnout.THROWN && state != INCONSISTENT) { // unknown or continuing path - not crossed over
-                if (isMain == mainlineA) {
-                    g2.setColor(colorA);
-                    g2.draw(new Line2D.Double(pA, pABM));
-                }
-                if (isMain == mainlineB) {
-                    g2.setColor(colorB);
-                    g2.draw(new Line2D.Double(pABM, pB));
-                }
-                if (isMain == mainlineC) {
-                    g2.setColor(colorC);
-                    g2.draw(new Line2D.Double(pC, pCDM));
-                }
-                if (isMain == mainlineD) {
-                    g2.setColor(colorD);
-                    g2.draw(new Line2D.Double(pCDM, pD));
-                }
-                if (!isBlock || drawUnselectedLeg) {
-                    if (getTurnoutType() == RH_XOVER) {
-                        if (isMain == mainlineA) {
-                            g2.setColor(colorA);
-                            g2.draw(new Line2D.Double(pAF, pM));
-                        }
-                        if (isMain == mainlineC) {
-                            g2.setColor(colorC);
-                            g2.draw(new Line2D.Double(pCF, pM));
-                        }
-                    } else if (getTurnoutType() == LH_XOVER) {
-                        if (isMain == mainlineB) {
-                            g2.setColor(colorB);
-                            g2.draw(new Line2D.Double(pBF, pM));
-                        }
-                        if (isMain == mainlineD) {
-                            g2.setColor(colorD);
-                            g2.draw(new Line2D.Double(pDF, pM));
-                        }
-                    }
-                }
-            }
-            if (state != Turnout.CLOSED && state != INCONSISTENT) { // unknown or diverting path - crossed over
-                if (getTurnoutType() == RH_XOVER) {
+            } else if (isTurnoutTypeSlip()) {
+                log.error("slips should be being drawn by LayoutSlip sub-class");
+            } else {    // LH, RH, or WYE Turnouts
+                if (!marked || (state != Turnout.INCONSISTENT)) {
+                    // draw A<===>center
                     if (isMain == mainlineA) {
                         g2.setColor(colorA);
-                        g2.draw(new Line2D.Double(pA, pABM));
-                        g2.draw(new Line2D.Double(pABM, pM));
+                        g2.draw(new Line2D.Double(pA, pM));
                     }
-                    if (!isBlock || drawUnselectedLeg) {
+
+                    //continuing path
+                    if (continuingSense != Turnout.invertTurnoutState(state)) {
+                        // draw center<===>B
                         if (isMain == mainlineB) {
                             g2.setColor(colorB);
-                            g2.draw(new Line2D.Double(pBM, pB));
+                            g2.draw(new Line2D.Double(pM, pB));
                         }
-                    }
-                    if (isMain == mainlineC) {
-                        g2.setColor(colorC);
-                        g2.draw(new Line2D.Double(pC, pCDM));
-                        g2.draw(new Line2D.Double(pCDM, pM));
-                    }
-                    if (!isBlock || drawUnselectedLeg) {
-                        if (isMain == mainlineD) {
-                            g2.setColor(colorD);
-                            g2.draw(new Line2D.Double(pDM, pD));
+                        if (drawUnselectedLeg) {
+                            // draw center<--=>C
+                            if (isMain == mainlineC) {
+                                g2.setColor(colorC);
+                                g2.draw(new Line2D.Double(MathUtil.twoThirdsPoint(pM, pC), pC));
+                            }
                         }
-                    }
-                } else if (getTurnoutType() == LH_XOVER) {
-                    if (!isBlock || drawUnselectedLeg) {
-                        if (isMain == mainlineA) {
-                            g2.setColor(colorA);
-                            g2.draw(new Line2D.Double(pA, pAM));
-                        }
-                    }
-                    if (isMain == mainlineB) {
-                        g2.setColor(colorB);
-                        g2.draw(new Line2D.Double(pB, pABM));
-                        g2.draw(new Line2D.Double(pABM, pM));
-                    }
-                    if (!isBlock || drawUnselectedLeg) {
+                    } else { //diverting path
+                        // draw center<===>C
                         if (isMain == mainlineC) {
                             g2.setColor(colorC);
-                            g2.draw(new Line2D.Double(pC, pCM));
+                            g2.draw(new Line2D.Double(pM, pC));
+                        }
+                        if (drawUnselectedLeg) {
+                            if (isMain == mainlineB) {
+                                // draw center<--=>B
+                                g2.setColor(colorB);
+                                g2.draw(new Line2D.Double(MathUtil.twoThirdsPoint(pM, pB), pB));
+                            }
                         }
                     }
-                    if (isMain == mainlineD) {
-                        g2.setColor(colorD);
-                        g2.draw(new Line2D.Double(pD, pCDM));
-                        g2.draw(new Line2D.Double(pCDM, pM));
-                    }
-                }
-            }
-            if (false && (state == INCONSISTENT)) {
-                if (isMain == mainlineA) {
-                    g2.setColor(colorA);
-                    g2.draw(new Line2D.Double(pA, pAM));
-                }
-                if (isMain == mainlineB) {
-                    g2.setColor(colorB);
-                    g2.draw(new Line2D.Double(pB, pBM));
-                }
-                if (isMain == mainlineC) {
-                    g2.setColor(colorC);
-                    g2.draw(new Line2D.Double(pC, pCM));
-                }
-                if (isMain == mainlineD) {
-                    g2.setColor(colorD);
-                    g2.draw(new Line2D.Double(pD, pDM));
-                }
-                if (!isBlock || drawUnselectedLeg) {
-                    if (getTurnoutType() == RH_XOVER) {
-                        if (isMain == mainlineA) {
-                            g2.setColor(colorA);
-                            g2.draw(new Line2D.Double(pAF, pM));
-                        }
-                        if (isMain == mainlineC) {
-                            g2.setColor(colorC);
-                            g2.draw(new Line2D.Double(pCF, pM));
-                        }
-                    } else if (getTurnoutType() == LH_XOVER) {
-                        if (isMain == mainlineB) {
-                            g2.setColor(colorB);
-                            g2.draw(new Line2D.Double(pBF, pM));
-                        }
-                        if (isMain == mainlineD) {
-                            g2.setColor(colorD);
-                            g2.draw(new Line2D.Double(pDF, pM));
-                        }
-                    }
-                }
-            }
-        } else if (isTurnoutTypeSlip()) {
-            log.error("slips should be being drawn by LayoutSlip sub-class");
-        } else {    // LH, RH, or WYE Turnouts
-            // draw A<===>center
-            if (isMain == mainlineA) {
-                g2.setColor(colorA);
-                g2.draw(new Line2D.Double(pA, pM));
-            }
-
-            if (state == UNKNOWN || (continuingSense == state && state != INCONSISTENT)) { // unknown or continuing path
-                // draw center<===>B
-                if (isMain == mainlineB) {
-                    g2.setColor(colorB);
-                    g2.draw(new Line2D.Double(pM, pB));
-                }
-            } else if (!isBlock || drawUnselectedLeg) {
-                // draw center<--=>B
-                if (isMain == mainlineB) {
-                    g2.setColor(colorB);
-                    g2.draw(new Line2D.Double(MathUtil.twoThirdsPoint(pM, pB), pB));
-                }
-            }
-
-            if (state == UNKNOWN || (continuingSense != state && state != INCONSISTENT)) { // unknown or diverting path
-                // draw center<===>C
-                if (isMain == mainlineC) {
-                    g2.setColor(colorC);
-                    g2.draw(new Line2D.Double(pM, pC));
-                }
-            } else if (!isBlock || drawUnselectedLeg) {
-                // draw center<--=>C
-                if (isMain == mainlineC) {
-                    g2.setColor(colorC);
-                    g2.draw(new Line2D.Double(MathUtil.twoThirdsPoint(pM, pC), pC));
                 }
             }
         }
@@ -4860,6 +4871,7 @@ public class LayoutTurnout extends LayoutTrack {
             setLayoutBlockB(layoutBlock);
             setLayoutBlockC(layoutBlock);
             setLayoutBlockD(layoutBlock);
+
         }
     }
 
@@ -4881,5 +4893,6 @@ public class LayoutTurnout extends LayoutTrack {
         }
     }
 
-    private final static Logger log = LoggerFactory.getLogger(LayoutTurnout.class);
+    private final static Logger log = LoggerFactory.getLogger(LayoutTurnout.class
+    );
 }
