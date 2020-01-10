@@ -11,6 +11,7 @@ import java.awt.geom.*;
 import java.util.*;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import jmri.*;
 import jmri.jmrit.display.layoutEditor.blockRoutingTable.LayoutBlockRouteTableAction;
@@ -1653,6 +1654,21 @@ public class LevelXing extends LayoutTrack {
     protected void drawTurnoutControls(Graphics2D g2) {
         // LevelXings don't have turnout controls...
         // nothing to see here... move along...
+    }
+
+    /*
+     * {@inheritDoc}
+     */
+    @Override
+    public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
+        if (setMarks != marked) {
+            marked = setMarks;
+            if ((fromLayoutTrack == null) || (connectA == fromLayoutTrack)) {
+                if (connectA != null) {
+                    connectA.floodMarks(this, setMarks);
+                }
+            }
+        }
     }
 
     /*

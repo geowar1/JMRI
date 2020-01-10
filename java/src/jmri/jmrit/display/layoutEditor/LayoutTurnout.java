@@ -2417,6 +2417,7 @@ public class LayoutTurnout extends LayoutTrack {
                         getSecondTurnout().setCommandedState(state);
                     }
                 }
+                floodMarks(null, true);
             }
         }
     }
@@ -3471,8 +3472,7 @@ public class LayoutTurnout extends LayoutTrack {
                         }
                     }
                 }
-            } else if ((type == RH_XOVER)
-                    || (type == LH_XOVER)) {
+            } else if ((type == RH_XOVER) || (type == LH_XOVER)) {
                 // draw (rh & lh) cross overs
                 pAF = MathUtil.midPoint(pABM, pM);
                 pBF = MathUtil.midPoint(pABM, pM);
@@ -3631,7 +3631,7 @@ public class LayoutTurnout extends LayoutTrack {
                                 g2.draw(new Line2D.Double(MathUtil.twoThirdsPoint(pM, pC), pC));
                             }
                         }
-                    } 
+                    }
                     //diverting path
                     if (continuingSense != state) {
                         // draw center<===>C
@@ -4425,6 +4425,92 @@ public class LayoutTurnout extends LayoutTrack {
     }
 
     /*
+     * {@inheritDoc}
+     */
+    @Override
+    public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
+        if (setMarks != marked) {
+            marked = setMarks;
+            if (isTurnoutTypeXover()) {
+                if ((type == DOUBLE_XOVER) || (type == RH_XOVER) || (getState() == Turnout.CLOSED)) {
+                    if ((fromLayoutTrack == null) || (connectA == fromLayoutTrack)) {
+                        if (connectA != null) {
+                            connectA.floodMarks(this, setMarks);
+                        }
+                    }
+                } else {
+                    if ((fromLayoutTrack == null) || (connectA == fromLayoutTrack)) {
+                        if (connectA != null) {
+                            connectA.floodMarks(this, !setMarks);
+                        }
+                    }
+                }
+                if ((type == DOUBLE_XOVER) || (type == LH_XOVER) || (getState() == Turnout.CLOSED)) {
+                    if ((fromLayoutTrack == null) || (connectB == fromLayoutTrack)) {
+                        if (connectB != null) {
+                            connectB.floodMarks(this, setMarks);
+                        }
+                    }
+                } else {
+                    if ((fromLayoutTrack == null) || (connectB == fromLayoutTrack)) {
+                        if (connectB != null) {
+                            connectB.floodMarks(this, !setMarks);
+                        }
+                    }
+                }
+                if ((type == DOUBLE_XOVER) || (type == RH_XOVER) || (getState() == Turnout.CLOSED)) {
+                    if ((fromLayoutTrack == null) || (connectC == fromLayoutTrack)) {
+                        if (connectC != null) {
+                            connectC.floodMarks(this, setMarks);
+                        }
+                    }
+                } else {
+                    if ((fromLayoutTrack == null) || (connectC == fromLayoutTrack)) {
+                        if (connectC != null) {
+                            connectC.floodMarks(this, !setMarks);
+                        }
+                    }
+                }
+                if ((type == DOUBLE_XOVER) || (type == LH_XOVER) || (getState() == Turnout.CLOSED)) {
+                    if (getState() == Turnout.CLOSED) {
+                        if ((fromLayoutTrack == null) || (connectD == fromLayoutTrack)) {
+                            if (connectD != null) {
+                                connectD.floodMarks(this, setMarks);
+                            }
+                        }
+                    }
+                } else {
+                    if (getState() == Turnout.CLOSED) {
+                        if ((fromLayoutTrack == null) || (connectD == fromLayoutTrack)) {
+                            if (connectD != null) {
+                                connectD.floodMarks(this, !setMarks);
+                            }
+                        }
+                    }
+                }
+            } else if (isTurnoutTypeSlip()) {
+                log.error("slips code should be in LayoutSlip sub-class");
+            } else {    // LH, RH, or WYE Turnouts
+                if ((fromLayoutTrack == null) || (connectA == fromLayoutTrack)) {
+                    if (connectA != null) {
+                        connectA.floodMarks(this, setMarks);
+                    }
+                }
+                if ((fromLayoutTrack == null) || (connectB == fromLayoutTrack)) {
+                    if (connectB != null) {
+                        connectB.floodMarks(this, setMarks && (getState() == Turnout.CLOSED));
+                    }
+                }
+                if ((fromLayoutTrack == null) || (connectC == fromLayoutTrack)) {
+                    if (connectC != null) {
+                        connectC.floodMarks(this, setMarks && (getState() == Turnout.THROWN));
+                    }
+                }
+            }
+        }
+    }
+
+    /*
      * Used by ConnectivityUtil to determine the turnout state necessary to get
      * from prevLayoutBlock ==> currLayoutBlock ==> nextLayoutBlock
      */
@@ -4546,7 +4632,6 @@ public class LayoutTurnout extends LayoutTrack {
 
         return result;
     }   // getConnectivityStateForLayoutBlocks
-
 
     /*
      * {@inheritDoc}

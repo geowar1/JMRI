@@ -15,6 +15,7 @@ import java.awt.geom.Rectangle2D;
 import java.beans.*;
 import java.util.*;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import jmri.*;
 import jmri.util.ColorUtil;
@@ -1256,6 +1257,17 @@ public class LayoutTurntable extends LayoutTrack {
                 g2.setColor(Color.green);
             }
             g2.draw(layoutEditor.layoutEditorControlRectAt(pt));
+        }
+    }
+
+    /*
+     * {@inheritDoc}
+     */
+    @Override
+    public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
+        if (setMarks != marked) {
+            marked = setMarks;
+            //note: we don't flood marks thru turntables
         }
     }
 

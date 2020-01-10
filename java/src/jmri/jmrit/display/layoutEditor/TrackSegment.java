@@ -2361,6 +2361,17 @@ public class TrackSegment extends LayoutTrack {
         // nothing to see here... move along...
     }
 
+    /*
+     * {@inheritDoc}
+     */
+    @Override
+    public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
+        if (setMarks != marked) {
+            marked = setMarks;
+zzz
+        }
+    }
+
     /**
      * {@inheritDoc}
      */

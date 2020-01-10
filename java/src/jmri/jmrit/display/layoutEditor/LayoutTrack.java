@@ -666,6 +666,17 @@ public abstract class LayoutTrack {
     }
 
     /**
+     * flood marks
+     * @param fromLayoutTrack where to start 
+     */
+    /**
+     * flood marks
+     * @param fromLayoutTrack the previous layout track
+     * @param setMarks true to set the marks; false to clear them
+     */
+    public abstract void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks);
+
+    /**
      * return a list of the available connections for this layout track
      *
      * @return the list of available connections
