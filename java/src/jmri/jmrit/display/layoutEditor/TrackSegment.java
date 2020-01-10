@@ -2244,11 +2244,16 @@ public class TrackSegment extends LayoutTrack {
             return;
         }
         if ((isMain == mainline) && (!isMark || marked)) {
-            if (isBlock) {
-                setColorForTrackBlock(g2, getLayoutBlock());
-                if (isMark) {
+            LayoutBlock lb = getLayoutBlock();
+            if (isMark) {
+                if (lb != null) {
+                    g2.setColor(lb.getBlockExtraColor());
+                } else {
+                    setColorForTrackBlock(g2, lb);
                     g2.setColor(ColorUtil.contrast(g2.getColor()));
                 }
+            } else if (isBlock) {
+                setColorForTrackBlock(g2, lb);
             }
             if (isArc()) {
                 calculateTrackSegmentAngle();
@@ -2367,8 +2372,15 @@ public class TrackSegment extends LayoutTrack {
     @Override
     public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
         if (setMarks != marked) {
+            log.warn("{}.floodMarks({}, {})", this.getName(), (fromLayoutTrack == null) ? "null" : fromLayoutTrack.getName(), setMarks ? "SET" : "CLEAR");
             marked = setMarks;
-zzz
+            if (connect1 == fromLayoutTrack) {
+                connect2.floodMarks(this, setMarks);
+            } else if (connect2 == fromLayoutTrack) {
+                connect1.floodMarks(this, setMarks);
+            } else {
+                log.error("floodMarks: fromLayoutTrack not connected to {}", getName());
+            }
         }
     }
 

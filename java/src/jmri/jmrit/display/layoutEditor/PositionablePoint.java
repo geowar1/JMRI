@@ -1875,8 +1875,17 @@ public class PositionablePoint extends LayoutTrack {
     @Override
     public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
         if (setMarks != marked) {
+            log.warn("{}.floodMarks({}, {})", this.getName(), (fromLayoutTrack == null) ? "null" : fromLayoutTrack.getName(), setMarks ? "SET" : "CLEAR");
             marked = setMarks;
-zzz
+            if (getType() == ANCHOR) {
+                if (connect1 == fromLayoutTrack) {
+                    connect2.floodMarks(this, setMarks);
+                } else if (connect2 == fromLayoutTrack) {
+                    connect1.floodMarks(this, setMarks);
+                } else {
+                    log.error("floodMarks: fromLayoutTrack not connected to {}", getName());
+                }
+            }
         }
     }
 

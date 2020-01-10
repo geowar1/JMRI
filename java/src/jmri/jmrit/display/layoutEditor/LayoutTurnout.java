@@ -17,7 +17,6 @@ import javax.swing.*;
 import jmri.*;
 import jmri.jmrit.display.layoutEditor.blockRoutingTable.LayoutBlockRouteTableAction;
 import jmri.jmrit.signalling.SignallingGuiTools;
-import jmri.util.ColorUtil;
 import jmri.util.MathUtil;
 import org.slf4j.*;
 
@@ -3326,7 +3325,16 @@ public class LayoutTurnout extends LayoutTrack {
             // if this isn't a block line all these will be the same color
             Color colorA = color, colorB = color, colorC = color, colorD = color;
 
-            if (isBlock) {
+            if (isMark) {
+                LayoutBlock lb = getLayoutBlock();
+                colorA = (lb == null) ? color : lb.getBlockExtraColor();
+                lb = getLayoutBlockB();
+                colorB = (lb == null) ? color : lb.getBlockExtraColor();
+                lb = getLayoutBlockC();
+                colorC = (lb == null) ? color : lb.getBlockExtraColor();
+                lb = getLayoutBlockD();
+                colorD = (lb == null) ? color : lb.getBlockExtraColor();
+            } else if (isBlock) {
                 LayoutBlock lb = getLayoutBlock();
                 colorA = (lb == null) ? color : lb.getBlockColor();
                 lb = getLayoutBlockB();
@@ -3335,13 +3343,6 @@ public class LayoutTurnout extends LayoutTrack {
                 colorC = (lb == null) ? color : lb.getBlockColor();
                 lb = getLayoutBlockD();
                 colorD = (lb == null) ? color : lb.getBlockColor();
-            }
-
-            if (isMark) {
-                colorA = ColorUtil.contrast(colorA);
-                colorB = ColorUtil.contrast(colorB);
-                colorC = ColorUtil.contrast(colorC);
-                colorD = ColorUtil.contrast(colorD);
             }
 
             // middles
@@ -4429,82 +4430,131 @@ public class LayoutTurnout extends LayoutTrack {
      */
     @Override
     public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
-        if (setMarks != marked) {
+        log.warn("{}.floodMarks({}, {})", this.getName(), (fromLayoutTrack == null) ? "null" : fromLayoutTrack.getName(), setMarks ? "SET" : "CLEAR");
+        if (fromLayoutTrack == null) {  //first track; flood all neighbors
             marked = setMarks;
+            int state = getTurnout().getCommandedState();
             if (isTurnoutTypeXover()) {
-                if ((type == DOUBLE_XOVER) || (type == RH_XOVER) || (getState() == Turnout.CLOSED)) {
-                    if ((fromLayoutTrack == null) || (connectA == fromLayoutTrack)) {
-                        if (connectA != null) {
-                            connectA.floodMarks(this, setMarks);
-                        }
+                if ((type == DOUBLE_XOVER) || (type == RH_XOVER) || (state == Turnout.CLOSED)) {
+                    if (connectA != null) {
+                        connectA.floodMarks(this, setMarks);
                     }
                 } else {
-                    if ((fromLayoutTrack == null) || (connectA == fromLayoutTrack)) {
-                        if (connectA != null) {
-                            connectA.floodMarks(this, !setMarks);
-                        }
+                    if (connectA != null) {
+                        connectA.floodMarks(this, !setMarks);
                     }
                 }
-                if ((type == DOUBLE_XOVER) || (type == LH_XOVER) || (getState() == Turnout.CLOSED)) {
-                    if ((fromLayoutTrack == null) || (connectB == fromLayoutTrack)) {
-                        if (connectB != null) {
-                            connectB.floodMarks(this, setMarks);
-                        }
+                if ((type == DOUBLE_XOVER) || (type == LH_XOVER) || (state == Turnout.CLOSED)) {
+                    if (connectB != null) {
+                        connectB.floodMarks(this, setMarks);
                     }
                 } else {
-                    if ((fromLayoutTrack == null) || (connectB == fromLayoutTrack)) {
-                        if (connectB != null) {
-                            connectB.floodMarks(this, !setMarks);
-                        }
+                    if (connectB != null) {
+                        connectB.floodMarks(this, !setMarks);
                     }
                 }
-                if ((type == DOUBLE_XOVER) || (type == RH_XOVER) || (getState() == Turnout.CLOSED)) {
-                    if ((fromLayoutTrack == null) || (connectC == fromLayoutTrack)) {
-                        if (connectC != null) {
-                            connectC.floodMarks(this, setMarks);
-                        }
+                if ((type == DOUBLE_XOVER) || (type == RH_XOVER) || (state == Turnout.CLOSED)) {
+                    if (connectC != null) {
+                        connectC.floodMarks(this, setMarks);
                     }
                 } else {
-                    if ((fromLayoutTrack == null) || (connectC == fromLayoutTrack)) {
-                        if (connectC != null) {
-                            connectC.floodMarks(this, !setMarks);
-                        }
+                    if (connectC != null) {
+                        connectC.floodMarks(this, !setMarks);
                     }
                 }
-                if ((type == DOUBLE_XOVER) || (type == LH_XOVER) || (getState() == Turnout.CLOSED)) {
-                    if (getState() == Turnout.CLOSED) {
-                        if ((fromLayoutTrack == null) || (connectD == fromLayoutTrack)) {
-                            if (connectD != null) {
-                                connectD.floodMarks(this, setMarks);
-                            }
-                        }
+                if ((type == DOUBLE_XOVER) || (type == LH_XOVER) || (state == Turnout.CLOSED)) {
+                    if (connectD != null) {
+                        connectD.floodMarks(this, setMarks);
                     }
                 } else {
-                    if (getState() == Turnout.CLOSED) {
-                        if ((fromLayoutTrack == null) || (connectD == fromLayoutTrack)) {
-                            if (connectD != null) {
-                                connectD.floodMarks(this, !setMarks);
-                            }
-                        }
+                    if (connectD != null) {
+                        connectD.floodMarks(this, !setMarks);
                     }
                 }
             } else if (isTurnoutTypeSlip()) {
                 log.error("slips code should be in LayoutSlip sub-class");
             } else {    // LH, RH, or WYE Turnouts
-                if ((fromLayoutTrack == null) || (connectA == fromLayoutTrack)) {
-                    if (connectA != null) {
-                        connectA.floodMarks(this, setMarks);
+                if (connectA != null) {
+                    connectA.floodMarks(this, setMarks);
+                }
+                if (connectB != null) {
+                    connectB.floodMarks(this, setMarks && (state == Turnout.CLOSED));
+                }
+                if (connectC != null) {
+                    connectC.floodMarks(this, setMarks && (state == Turnout.THROWN));
+                }
+            }
+        } else {    //not first track; flood opposite leg
+            if (setMarks != marked) {
+                marked = setMarks;
+                int state = getTurnout().getCommandedState();
+                boolean markA = false, markB = false, markC = false, markD = false;
+                if (isTurnoutTypeXover()) {
+                    if (connectA == fromLayoutTrack) {
+                        if (state == Turnout.CLOSED) {
+                            markB = true;
+                        } else if (state == Turnout.THROWN) {
+                            markA = (type == LH_XOVER);
+                            markC = (type != LH_XOVER);
+                        }
+                    } else if (connectB == fromLayoutTrack) {
+                        if (state == Turnout.CLOSED) {
+                            markA = true;
+                        } else if (state == Turnout.THROWN) {
+                            markB = (type == RH_XOVER);
+                            markD = (type != RH_XOVER);
+                        }
+                    } else if (connectC == fromLayoutTrack) {
+                        if (state == Turnout.CLOSED) {
+                            markD = true;
+                        } else if (state == Turnout.THROWN) {
+                            markA = (type != LH_XOVER);
+                            markC = (type == LH_XOVER);
+                        }
+                    } else if (connectD == fromLayoutTrack) {
+                        if (state == Turnout.CLOSED) {
+                            markC = true;
+                        } else if (state == Turnout.THROWN) {
+                            markB = (type != RH_XOVER);
+                            markD = (type == RH_XOVER);
+                        }
+                    } else {
+                        log.error("floodMarks: fromLayoutTrack not connected to {}", getName());
+                    }
+                } else if (isTurnoutTypeSlip()) {
+                    log.error("slips code should be in LayoutSlip sub-class");
+                } else {    // LH, RH, or WYE Turnouts
+                    if (connectA == fromLayoutTrack) {
+                        if (state == Turnout.CLOSED) {
+                            markB = true;
+                        } else if (state == Turnout.THROWN) {
+                            markC = true;
+                        }
+                    } else if (connectB == fromLayoutTrack) {
+                        if (state == Turnout.CLOSED) {
+                            markA = true;
+                            markC = false;
+                        }
+                    } else if (connectC == fromLayoutTrack) {
+                        if (state == Turnout.THROWN) {
+                            markA = true;
+                            markB = false;
+                        }
+                    } else {
+                        log.error("floodMarks: fromLayoutTrack not connected to {}", getName());
                     }
                 }
-                if ((fromLayoutTrack == null) || (connectB == fromLayoutTrack)) {
-                    if (connectB != null) {
-                        connectB.floodMarks(this, setMarks && (getState() == Turnout.CLOSED));
-                    }
+                if (connectA != null) {
+                    connectA.floodMarks(this, markA);
                 }
-                if ((fromLayoutTrack == null) || (connectC == fromLayoutTrack)) {
-                    if (connectC != null) {
-                        connectC.floodMarks(this, setMarks && (getState() == Turnout.THROWN));
-                    }
+                if (connectB != null) {
+                    connectB.floodMarks(this, markB);
+                }
+                if (connectC != null) {
+                    connectC.floodMarks(this, markC);
+                }
+                if (connectD != null) {
+                    connectD.floodMarks(this, markD);
                 }
             }
         }

@@ -1138,14 +1138,20 @@ public class LayoutTurntable extends LayoutTrack {
                 if (ts != null) {
                     main = ts.isMainline();
                 }
-                if (isBlock) {
+
+                if (isMark) {
+                    LayoutBlock lb = ts.getLayoutBlock();
+                    if (lb != null) {
+                        g2.setColor(lb.getBlockExtraColor());
+                    } else {
+                        setColorForTrackBlock(g2, lb);
+                        g2.setColor(ColorUtil.contrast(g2.getColor()));
+                    }
+                } else if (isBlock) {
                     if (ts == null) {
                         g2.setColor(layoutEditor.getDefaultTrackColorColor());
                     } else {
                         setColorForTrackBlock(g2, ts.getLayoutBlock());
-                    }
-                    if (isMark) {
-                        g2.setColor(ColorUtil.contrast(g2.getColor()));
                     }
                 }
                 if (main == isMain) {
@@ -1266,6 +1272,7 @@ public class LayoutTurntable extends LayoutTrack {
     @Override
     public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
         if (setMarks != marked) {
+            log.warn("{}.floodMarks({}, {})", this.getName(), (fromLayoutTrack == null) ? "null" : fromLayoutTrack.getName(), setMarks ? "SET" : "CLEAR");
             marked = setMarks;
             //note: we don't flood marks thru turntables
         }

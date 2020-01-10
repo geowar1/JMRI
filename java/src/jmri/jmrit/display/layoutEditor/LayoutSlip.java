@@ -1,41 +1,17 @@
 package jmri.jmrit.display.layoutEditor;
 
-import static java.lang.Integer.parseInt;
-import static java.lang.Math.PI;
-
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.awt.event.*;
+import java.awt.geom.*;
+import java.util.*;
 import java.util.Map.Entry;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.swing.AbstractAction;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComboBox;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
-import javax.swing.JSeparator;
-import jmri.InstanceManager;
-import jmri.NamedBeanHandle;
-import jmri.Path;
-import jmri.SignalMast;
-import jmri.Turnout;
+import javax.annotation.*;
+import javax.swing.*;
+import jmri.*;
 import jmri.jmrit.display.layoutEditor.blockRoutingTable.LayoutBlockRouteTableAction;
-import jmri.util.ColorUtil;
-import jmri.util.MathUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jmri.util.*;
+import org.slf4j.*;
 
 /**
  * A LayoutSlip is a crossing of two straight tracks designed in such a way as
@@ -351,6 +327,8 @@ public class LayoutSlip extends LayoutTurnout {
             if (getTurnoutB() != null) {
                 getTurnoutB().setCommandedState(ts.getTurnoutBState());
             }
+            floodMarks(null, true);
+            floodMarks(null, true);
         }
     }
 
@@ -1075,8 +1053,8 @@ public class LayoutSlip extends LayoutTurnout {
             log.error("Trying to set invalid state for slip " + getDisplayName());
             return;
         }
-        turnoutStates.get(state).setTurnoutAState(parseInt(turnStateA));
-        turnoutStates.get(state).setTurnoutBState(parseInt(turnStateB));
+        turnoutStates.get(state).setTurnoutAState(Integer.parseInt(turnStateA));
+        turnoutStates.get(state).setTurnoutBState(Integer.parseInt(turnStateB));
     }
 
     //Internal call to update the state of the slip depending upon the turnout states.
@@ -1141,7 +1119,16 @@ public class LayoutSlip extends LayoutTurnout {
             // if this isn't a block line all these will be the same color
             Color colorA = color, colorB = color, colorC = color, colorD = color;
 
-            if (isBlock) {
+            if (isMark) {
+                LayoutBlock lb = getLayoutBlock();
+                colorA = (lb == null) ? color : lb.getBlockExtraColor();
+                lb = getLayoutBlockB();
+                colorB = (lb == null) ? color : lb.getBlockExtraColor();
+                lb = getLayoutBlockC();
+                colorC = (lb == null) ? color : lb.getBlockExtraColor();
+                lb = getLayoutBlockD();
+                colorD = (lb == null) ? color : lb.getBlockExtraColor();
+            } else if (isBlock) {
                 LayoutBlock layoutBlockA = getLayoutBlock();
                 colorA = (layoutBlockA != null) ? layoutBlockA.getBlockTrackColor() : color;
                 LayoutBlock layoutBlockB = getLayoutBlockB();
@@ -1299,7 +1286,7 @@ public class LayoutSlip extends LayoutTurnout {
         double deltaDEG = MathUtil.absDiffAngleDEG(dirAC_DEG, dirBD_DEG);
         double deltaRAD = Math.toRadians(deltaDEG);
 
-        double hypotV = railDisplacement / Math.cos((PI - deltaRAD) / 2.0);
+        double hypotV = railDisplacement / Math.cos((Math.PI - deltaRAD) / 2.0);
         double hypotK = railDisplacement / Math.cos(deltaRAD / 2.0);
 
         log.debug("dir AC: {}, BD: {}, diff: {}", dirAC_DEG, dirBD_DEG, deltaDEG);
@@ -1662,8 +1649,101 @@ public class LayoutSlip extends LayoutTurnout {
 
             return result;
         }
-
     }   // class TurnoutState
+
+    /*
+     * {@inheritDoc}
+     */
+    @Override
+    public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
+        log.warn("{}.floodMarks({}, {})", this.getName(), (fromLayoutTrack == null) ? "null" : fromLayoutTrack.getName(), setMarks ? "SET" : "CLEAR");
+        if (fromLayoutTrack == null) {
+            marked = setMarks;
+            if ((currentState == STATE_AC) || (currentState == STATE_AD)) {
+                if (connectA != null) {
+                    connectA.floodMarks(this, setMarks);
+                }
+            } else {
+                if (connectA != null) {
+                    connectA.floodMarks(this, !setMarks);
+                }
+            }
+            if ((currentState == STATE_BC) || (currentState == STATE_BD)) {
+                if (connectB != null) {
+                    connectB.floodMarks(this, setMarks);
+                }
+            } else {
+                if (connectB != null) {
+                    connectB.floodMarks(this, !setMarks);
+                }
+            }
+            if ((currentState == STATE_AC) || (currentState == STATE_BC)) {
+                if (connectC != null) {
+                    connectC.floodMarks(this, setMarks);
+                }
+            } else {
+                if (connectC != null) {
+                    connectC.floodMarks(this, !setMarks);
+                }
+            }
+            if ((currentState == STATE_AD) || (currentState == STATE_BD)) {
+                if (connectD != null) {
+                    connectD.floodMarks(this, setMarks);
+                }
+            } else {
+                if (connectD != null) {
+                    connectD.floodMarks(this, !setMarks);
+                }
+            }
+        } else {
+            if (setMarks != marked) {
+                marked = setMarks;
+                if (connectA == fromLayoutTrack) {
+                    if (currentState == STATE_AC) {
+                        if (connectC != null) {
+                            connectC.floodMarks(this, setMarks);
+                        }
+                    } else if (currentState == STATE_AD) {
+                        if (connectD != null) {
+                            connectD.floodMarks(this, setMarks);
+                        }
+                    }
+                } else if (connectB == fromLayoutTrack) {
+                    if (currentState == STATE_BC) {
+                        if (connectC != null) {
+                            connectC.floodMarks(this, setMarks);
+                        }
+                    } else if (currentState == STATE_BD) {
+                        if (connectD != null) {
+                            connectD.floodMarks(this, setMarks);
+                        }
+                    }
+                } else if (connectC == fromLayoutTrack) {
+                    if (currentState == STATE_AC) {
+                        if (connectA != null) {
+                            connectA.floodMarks(this, setMarks);
+                        }
+                    } else if (currentState == STATE_BC) {
+                        if (connectB != null) {
+                            connectB.floodMarks(this, setMarks);
+                        }
+                    }
+                } else if (connectD == fromLayoutTrack) {
+                    if (currentState == STATE_AD) {
+                        if (connectA != null) {
+                            connectA.floodMarks(this, setMarks);
+                        }
+                    } else if (currentState == STATE_BD) {
+                        if (connectB != null) {
+                            connectB.floodMarks(this, setMarks);
+                        }
+                    }
+                } else {
+                    log.error("floodMarks: fromLayoutTrack not connected to {}", getName());
+                }
+            }
+        }
+    }
 
     /*
         this is used by ConnectivityUtil to determine the turnout state necessary to get from prevLayoutBlock ==> currLayoutBlock ==> nextLayoutBlock
@@ -1907,5 +1987,6 @@ public class LayoutSlip extends LayoutTurnout {
     //      and collectContiguousTracksNamesInBlockNamed methods
     //      inherited from LayoutTurnout
     //
-    private final static Logger log = LoggerFactory.getLogger(LayoutSlip.class);
+    private final static Logger log = LoggerFactory.getLogger(LayoutSlip.class
+    );
 }
