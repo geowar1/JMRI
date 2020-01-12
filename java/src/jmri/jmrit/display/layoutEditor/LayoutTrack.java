@@ -59,7 +59,7 @@ public abstract class LayoutTrack {
     protected Point2D center = new Point2D.Double(50.0, 50.0);
 
     protected boolean hidden = false;
-    protected boolean marked = true;    //TODO:Fix this for production; should default to false
+    protected boolean marked = false;
 
     /**
      * constructor method

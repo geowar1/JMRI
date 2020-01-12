@@ -1499,7 +1499,9 @@ public class LevelXing extends LayoutTrack {
                 } else if (isBlock) {
                     setColorForTrackBlock(g2, lb);
                 }
-                g2.draw(new Line2D.Double(getCoordsA(), getCoordsC()));
+                if (!isMark || markedAC) {
+                    g2.draw(new Line2D.Double(getCoordsA(), getCoordsC()));
+                }
             }
             if (isMain == isMainlineBD()) {
                 LayoutBlock lb = getLayoutBlockBD();
@@ -1513,7 +1515,9 @@ public class LevelXing extends LayoutTrack {
                 } else if (isBlock) {
                     setColorForTrackBlock(g2, lb);
                 }
-                g2.draw(new Line2D.Double(getCoordsB(), getCoordsD()));
+                if (!isMark || markedBD) {
+                    g2.draw(new Line2D.Double(getCoordsB(), getCoordsD()));
+                }
             }
         }
     }
@@ -1666,30 +1670,43 @@ public class LevelXing extends LayoutTrack {
         // nothing to see here... move along...
     }
 
+    private boolean markedAC = false, markedBD = false;
+
     /*
      * {@inheritDoc}
      */
     @Override
     public void floodMarks(@Nullable LayoutTrack fromLayoutTrack, boolean setMarks) {
-        if (setMarks != marked) {
+        if ((setMarks != markedAC || (setMarks != markedBD))) {
             log.warn("{}.floodMarks({}, {})", this.getName(), (fromLayoutTrack == null) ? "null" : fromLayoutTrack.getName(), setMarks ? "SET" : "CLEAR");
-            marked = setMarks;
             if (fromLayoutTrack != null) {
                 if (connectA == fromLayoutTrack) {
-                    if (connectC != null) {
-                        connectC.floodMarks(this, setMarks);
+                    if (markedAC != setMarks) {
+                        markedAC = setMarks;
+                        if (connectC != null) {
+                            connectC.floodMarks(this, setMarks);
+                        }
                     }
                 } else if (connectB == fromLayoutTrack) {
-                    if (connectD != null) {
-                        connectD.floodMarks(this, setMarks);
+                    if (markedBD != setMarks) {
+                        markedBD = setMarks;
+                        if (connectD != null) {
+                            connectD.floodMarks(this, setMarks);
+                        }
                     }
                 } else if (connectC == fromLayoutTrack) {
-                    if (connectA != null) {
-                        connectA.floodMarks(this, setMarks);
+                    if (markedAC != setMarks) {
+                        markedAC = setMarks;
+                        if (connectA != null) {
+                            connectA.floodMarks(this, setMarks);
+                        }
                     }
                 } else if (connectD == fromLayoutTrack) {
-                    if (connectB != null) {
-                        connectB.floodMarks(this, setMarks);
+                    if (markedBD != setMarks) {
+                        markedBD = setMarks;
+                        if (connectB != null) {
+                            connectB.floodMarks(this, setMarks);
+                        }
                     }
                 } else {
                     log.error("floodMarks: fromLayoutTrack not connected to {}", getName());
@@ -1697,6 +1714,7 @@ public class LevelXing extends LayoutTrack {
             } else {
                 log.error("floodMarks: fromLayoutTrack is null");
             }
+            marked = (markedAC || markedBD);
         }
     }
 

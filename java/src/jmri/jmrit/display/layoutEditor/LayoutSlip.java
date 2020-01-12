@@ -1153,13 +1153,6 @@ public class LayoutSlip extends LayoutTurnout {
                 }
             }
 
-            if (isMark) {
-                colorA = ColorUtil.contrast(colorA);
-                colorB = ColorUtil.contrast(colorB);
-                colorC = ColorUtil.contrast(colorC);
-                colorD = ColorUtil.contrast(colorD);
-            }
-
             Point2D oneForthPointAC = MathUtil.oneFourthPoint(pA, pC);
             Point2D oneThirdPointAC = MathUtil.oneThirdPoint(pA, pC);
             Point2D midPointAC = MathUtil.midPoint(pA, pC);
