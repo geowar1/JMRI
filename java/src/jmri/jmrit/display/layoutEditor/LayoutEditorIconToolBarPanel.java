@@ -2,7 +2,6 @@ package jmri.jmrit.display.layoutEditor;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -94,24 +93,32 @@ public class LayoutEditorIconToolBarPanel extends LayoutEditorToolBarPanel {
 
         removeAll();
 
-        add(turnoutRHButton);
-        add(turnoutLHButton);
-        add(turnoutWYEButton);
-        add(doubleXoverButton);
-        add(rhXoverButton);
-        add(lhXoverButton);
-        add(layoutSingleSlipButton);
-        add(layoutDoubleSlipButton);
+        JPanel topPanel = new JPanel();
 
-        add(Box.createRigidArea(new Dimension(32, 64)));
+        topPanel.add(turnoutRHButton);
+        topPanel.add(turnoutLHButton);
+        topPanel.add(turnoutWYEButton);
+        topPanel.add(doubleXoverButton);
+        topPanel.add(rhXoverButton);
+        topPanel.add(lhXoverButton);
+        topPanel.add(layoutSingleSlipButton);
+        topPanel.add(layoutDoubleSlipButton);
 
-        add(endBumperButton);
-        add(anchorButton);
-        add(edgeButton);
-        add(trackButton);
-        add(levelXingButton);
+        topPanel.add(Box.createHorizontalStrut(5));
+        topPanel.add(new JSeparator(SwingConstants.VERTICAL));
+        topPanel.add(Box.createHorizontalStrut(5));
 
-        add(Box.createHorizontalStrut(30));
+        topPanel.add(endBumperButton);
+        topPanel.add(anchorButton);
+        topPanel.add(edgeButton);
+        topPanel.add(trackButton);
+        topPanel.add(levelXingButton);
+
+        topPanel.add(Box.createHorizontalStrut(5));
+        topPanel.add(new JSeparator(SwingConstants.VERTICAL));
+        topPanel.add(Box.createHorizontalStrut(5));
+
+        add(topPanel);
 
         revalidate();
         repaint();
